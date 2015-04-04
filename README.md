@@ -1,4 +1,4 @@
 HAMMLET
 ========
 
-Fast posterior sampling of CNV states without parameter estimation.
+Bayesian Hidden Markov Model with Wavelet Compression.
