@@ -1,3 +1,7 @@
 *.o
 *.pyc
 hammlet
+*.tar
+*.gz
+*.zip
+*.tgz

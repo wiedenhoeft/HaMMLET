@@ -1,0 +1,105 @@
+__maximum__: 200000
+
+__yamlname__: sample.yaml
+
+__calls__: 
+- simulate.py
+- run.py
+
+__nrThreads__: 36
+
+
+trials:
+- [compressed, uncompressed]
+
+benchmarks:
+- [time, fmeasure]
+
+
+maxBlockSize:
+- 0
+
+
+burnin:
+- 0
+
+iterations: 
+- 1000
+
+
+simSampleFile:
+- sample.csv
+
+
+hyperFile:
+- hyperParameters.yaml
+
+
+modelFile: 
+- model.txt
+
+selfTransitions:
+- 1000
+- 100
+- 10
+
+transitions:
+- 1
+
+
+alphas:
+- 1
+- 10
+
+lenGains: 
+- 100
+- 250
+- 500
+- 750
+- 1000
+
+nrGains: 
+- 1
+- 2
+- 3
+- 4
+- 5
+- 6
+
+lenLosses: 
+- 100
+- 250
+- 500
+- 750
+- 1000
+
+
+nrLosses: 
+- 1
+- 2
+- 3
+- 4
+- 5
+- 6
+
+nrSamples: 
+- 32768
+
+nrCNstates: 
+- 3
+
+means: 
+- [-1, 0, 1]
+- [-2, 0, 2]
+- [-0.69314718, 0.0, 0.40546511]
+- [-10, 0, 10]
+
+variances:  
+- [0.05, 0.05, 0.05]
+- [0.5, 0.1, 0.9]
+- [0.3, 0.2, 0.1]
+- [0.2, 0.1, 0.3]
+- [0.1, 0.3, 0.2]
+- [0.1, 0.1, 0.1]
+
+samplePathPrefix: sample
