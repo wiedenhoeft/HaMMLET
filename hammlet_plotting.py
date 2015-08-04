@@ -49,7 +49,7 @@ defaultColors = ["#a6cee3", "#1f78b4", "#fb9a99", "#e31a1c", "#b2df8a", "#33a02c
 def lettercase(s):
 	return s[0].upper()+s[1:]
 
-def saveResultsFromFile(outFileName, dataFiles, sequenceFile,  nrStates, blocksFile=None, maxBlockSize=0, burnin=0, palette=defaultColors, allSequences=False, multipleOutputs=None, xlabel="Position", ylabel="Measurement"):
+def saveResultsFromFile(outFileName, dataFiles, sequenceFile,  nrStates, blocksFile=None, maxBlockSize=0, burnin=0, palette=defaultColors, allSequences=False, multipleOutputs=None, xlabel="Position", ylabel="Measurement", ylim=None):
 	
 	if type(dataFiles) is str:
 		dataFiles = [dataFiles]
@@ -71,14 +71,15 @@ def saveResultsFromFile(outFileName, dataFiles, sequenceFile,  nrStates, blocksF
 		blocks = np.loadtxt(blocksFile)
 
 	data = np.zeros((nrTracks, nrValues))
-	ylim=[99999999999999999999999, -99999999999999999999999]
+	if ylim==None:
+		ylim=[99999999999999999999999, -99999999999999999999999]
 	for i in xrange(nrTracks):
 		data[i, :] = np.loadtxt(dataFiles[i], dtype=float)[:,1]
 		ylim[0] = min(ylim[0], data[i,:].min())
 		ylim[1] = max(ylim[1], data[i,:].max())
 
 	if multipleOutputs==None:
-		saveResult(filename=outFileName, data=data, marginals=marginals, blocks=blocks, maxBlocksize=maxBlockSize, burnin=burnin, palette=palette, xlabel=xlabel, ylabel=ylabel)
+		saveResult(filename=outFileName, data=data, marginals=marginals, blocks=blocks, maxBlocksize=maxBlockSize, burnin=burnin, palette=palette, xlabel=xlabel, ylabel=ylabel, ylim=ylim)
 	else:
 		multipleOutputSizes = np.loadtxt(multipleOutputs, usecols=[0], dtype=int)
 		multipleOutputSizes = np.asarray([0]+list(multipleOutputSizes)).cumsum()
