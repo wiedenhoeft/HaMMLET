@@ -1,0 +1,12 @@
+AutoNormal,0.01,0.9,s1
+AutoNormal,0.01,0.9,s2
+AutoNormal,0.01,0.9,s3
+AutoNormal,0.01,0.9,s4
+AutoNormal,0.01,0.9,s5
+Categorical,5,1,1,1,1,1,a1
+Categorical,5,1,1,1,1,1,a2
+Categorical,5,1,1,1,1,1,a3
+Categorical,5,1,1,1,1,1,a4
+Categorical,5,1,1,1,1,1,a5
+Categorical,5,1,1,1,1,1,pi
+HMM,5,pi,a1,a2,a3,a4,a5,s1,s2,s3,s4,s5
