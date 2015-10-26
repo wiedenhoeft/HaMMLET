@@ -134,6 +134,10 @@ void gibbs( string model_filename, int iterations, bool compression,
 }
 
 int main( int argc, char** argv ) {
+	if (argc < 15){
+		cout <<endl<< "Insufficient number of arguments. This executable should not"<<endl<<"be called directly, but using hammlet.py. To learn more, run"<<endl<<endl<<"                    python hammlet.py -h"<<endl<<endl<<"to see the manual."<<endl;
+		return 1;
+	}
 	gibbs(
 		argv[1],
 		atoi( argv[2] ),

@@ -16,6 +16,21 @@ Copy Number Variants using Hidden Markov Models with Wavelet Compression.
 bioRxiv (2015). DOI: 10.1101/023705.
 
 
+How to use HaMMLET
+=======
+
+HaMMLET is called via the Python script "hammlet.py"; never call the executable "hammlet" directly. We have provided a small sample file to demonstrate the main features of HaMMLET. Calling
+		
+		python hammlet.py -p -P -k -s 6 -i 100 sample_model.txt sample.csv
+
+does the following: It takes the data in "sample.csv", runs the sampler for 100 iterations (-i option), and outputs the marginal counts of each state to "sample_statesequence.csv". It plots the result to a file called "sample.png" (-p option), as well as the sampled values for emission means and variances to "sample_parameters.png" (-P option). Additionally, the -P option writes the samples for each model parameter to "sample_*.txt", where * represents the name of the variable as specified in "sample_model.txt". Notice that the data only contains 5 different states, but the model contains 6 (-s option; this MUST be provided if -P is used, but can be omitted otherwise), thus you will see that the variates for the emission parameters of one state vary widely, as they are sampled from the prior and do not contribute to any CNV call, whereas the others converge almost instantly and yield flat curves in "sample_parameters.png". The -k option writes the minimum block boundaries to "sample_blocks.csv", which appear as grey vertical lines in "sample.png". Note that these are NOT the segment boundaries of the calls, but rather represent the largest blocks used during compression as derived from the MAD variance (see paper for details); this is mostly for evaluation purposes, and is of limited value in actual applications.
+
+HaMMLET comes with a variety of options. For more information, see the manual page by running
+
+		python hammlet.py -h
+		
+
+
 
 License
 =======

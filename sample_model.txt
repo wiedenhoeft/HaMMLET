@@ -1,0 +1,14 @@
+AutoNormal,.2,.9,s1
+AutoNormal,.2,.9,s2
+AutoNormal,.2,.9,s3
+AutoNormal,.2,.9,s4
+AutoNormal,.2,.9,s5
+AutoNormal,.2,.9,s6
+Categorical,6,100,10,10,10,10,10,a1
+Categorical,6,10,100,10,10,10,10,a2
+Categorical,6,10,10,100,10,10,10,a3
+Categorical,6,10,10,10,100,10,10,a4
+Categorical,6,10,10,10,10,100,10,a5
+Categorical,6,10,10,10,10,10,100,a6
+Categorical,6,10,1,10,10,10,10,pi
+HMM,6,pi,a1,a2,a3,a4,a5,a6,s1,s2,s3,s4,s5,s6
