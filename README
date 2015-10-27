@@ -47,6 +47,11 @@ used during compression as derived from the MAD variance (see paper for
 details); this is mostly for evaluation purposes, and is of limited value 
 in actual applications.
 
+If you do not have Matplotlib installed, -p and -P cannot be used. The 
+marginal state distribution will still be produced:
+
+        python hammlet.py -i 100 sample_model.txt sample.csv
+        
 HaMMLET comes with a variety of options. For more information, see the 
 manual page by running
 
