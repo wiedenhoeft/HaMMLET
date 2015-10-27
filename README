@@ -15,6 +15,8 @@ John Wiedenhoeft, Eric Brugel, Alexander Schliep. Fast Bayesian Inference
 of Copy Number Variants using Hidden Markov Models with Wavelet 
 Compression. bioRxiv (2015). DOI: 10.1101/023705.
 
+**Requirements** Python 2.7 (tested with 2.7.3 and 2.7.6), NumPy (tested 
+with 1.6.2 and 1.8.2), Matplotlib (tested with 1.1.1 and 1.3.1).
 
 How to use HaMMLET
 =======
