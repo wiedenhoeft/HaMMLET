@@ -20,7 +20,7 @@
 
 from __future__ import division, print_function
 import sys
-if sys.version_info < (2,7,0):
+if sys.version_info < (2,6,0):
 	print("[ERROR] HaMMLET requires at least Python 2.6.")
 	sys.exit()
 import argparse
