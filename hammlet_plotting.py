@@ -23,6 +23,7 @@
 ## @package Fmeasures
 # This package implements the plotting routines for HaMMLET, including option for plotting known parameters from simulations.
 
+from __future__ import print_function
 import matplotlib
 matplotlib.use('Agg')
 import numpy as np
@@ -93,7 +94,7 @@ def saveResultsFromFile(outFileName, dataFiles, sequenceFile,  nrStates, blocksF
 
 
 def saveResult(filename, data, marginals, blocks=None, maxBlocksize=0, burnin=0, palette=defaultColors, start=0, end=None, ylim=None, xlabel="Position", ylabel="Measurement"):
-	print filename
+	print(filename)
 	if end==None:
 		end = len(data[0])
 	f = plt.Figure()

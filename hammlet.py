@@ -18,12 +18,12 @@
 ###     You should have received a copy of the GNU General Public License
 ###     along with HaMMLET.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-from __future__ import division
-import argparse
+from __future__ import division, print_function
 import sys
+if sys.version_info < (2,7,0):
+	print("[ERROR] HaMMLET requires at least Python 2.6.")
+	sys.exit()
+import argparse
 import os
 
 
@@ -206,7 +206,7 @@ def autoPriors(nrStates, variance, p, selfTransitions, transitions, pi, filename
 	modelString += "Categorical,%d,%s,pi\n" % (nrStates, ",".join([str(pi) for i in xrange(nrStates)]))
 	modelString += "HMM,%d,pi,%s,%s\n" % (nrStates, ",".join(["a%d"%i for i in xrange(1, nrStates+1)]), ",".join(["s%d"%i for i in xrange(1, nrStates+1)]))
 	f = file(filename, "w")
-	print "Writing automatic priors to %s" % filename
+	print("Writing automatic priors to {0}".format(filename))
 	f.write(modelString)
 	f.close()	
 
@@ -245,7 +245,7 @@ if args.git:
 	(stdout, stderr) = gitproc.communicate()
 	for row in stdout.split('\n'):
 		hash = row.strip(" \t\n")
-		print "git hash is", hash
+		print("git hash is {0}".format(hash))
 		args.output += "_" + hash
 		os.chdir(dataDir)
 		break
@@ -260,13 +260,13 @@ if not os.path.exists(outdir):
 
 
 if args.maxblocksize == 1:
-	print "[NOTE] Maximum block size is set to 1, using uncompressed option (-c)."
+	print("[NOTE] Maximum block size is set to 1, using uncompressed option (-c).")
 	args.compression = False
 	args.maxblocksize = 0
 
 
 if args.debug:	# debug mode, only one iteration
-	print "===== DEBUG MODE ====="
+	print("===== DEBUG MODE =====")
 	callstring = "'%s' '%s' %d %d %d %d %d %d %d %d %d '%s' %s %d '%s'" % (
 		os.path.join(os.path.dirname(os.path.abspath(__file__)), "./hammlet"),
 		args.modelFile,
@@ -318,7 +318,7 @@ args.outdir = os.path.dirname(args.output)
 
 # plot parameters for convergence test if option -P was provided
 if args.parameters:
-	print "Plotting parameters..."
+	print("Plotting parameters...")
 	import matplotlib
 	from hammlet_plotting import *
 	# Force matplotlib to not use any Xwindows backend.
@@ -345,7 +345,7 @@ if args.parameters:
 
 if args.plot or args.debug:
 	
-	print "Plotting results..."
+	print("Plotting results...")
 	from hammlet_plotting import *
 
 	blocksFile = None
