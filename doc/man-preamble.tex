@@ -1,0 +1,15 @@
+\usepackage[charter]{mathdesign} 
+\setlength{\columnsep}{1cm}
+\usepackage{microtype}
+\DisableLigatures[-]{}	% disable replacement of --
+\usepackage{breakurl}
+\usepackage{graphicx}
+
+\usepackage{eso-pic}
+\newcommand\AtPageUpperRight[1]{\AtPageUpperLeft{\makebox[\paperwidth][r]{#1}}}
+\AddToShipoutPictureBG{
+	\AtPageUpperRight{\raisebox{-\height}{\includegraphics[width=0.6in, keepaspectratio]{logo/dogear.png}}}
+}
+
+
+\hyphenation{white-space}

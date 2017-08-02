@@ -1,0 +1,3 @@
+To install, run make, or simply use a C++11-compliant compiler, e.g.
+g++ -O3 --std=c++11 -o hammlet main.cpp 
+

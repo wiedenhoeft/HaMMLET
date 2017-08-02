@@ -1,0 +1,537 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title>HaMMLET(1)</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style>
+  
+  html {
+    font-size: 100%;
+    overflow-y: scroll;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+  }
+  
+  body {
+    color: #444;
+    font-family:  Palatino, 'Palatino Linotype', Georgia, Times, 'Times New Roman', serif;
+    font-size: 12pt;
+    line-height: 1.7;
+    padding: 1em;
+    margin: auto;
+    max-width: 50em;
+    background: #fefefe;
+  }
+  
+  a {
+    color: #0645ad;
+    text-decoration: none;
+  }
+  
+  a:visited {
+    color: #0b0080;
+  }
+  
+  a:hover {
+    color: #06e;
+  }
+  
+  a:active {
+    color: #faa700;
+  }
+  
+  a:focus {
+    outline: thin dotted;
+  }
+  
+  *::-moz-selection {
+    background: rgba(255, 255, 0, 0.3);
+    color: #000;
+  }
+  
+  *::selection {
+    background: rgba(255, 255, 0, 0.3);
+    color: #000;
+  }
+  
+  a::-moz-selection {
+    background: rgba(255, 255, 0, 0.3);
+    color: #0645ad;
+  }
+  
+  a::selection {
+    background: rgba(255, 255, 0, 0.3);
+    color: #0645ad;
+  }
+  
+  p {
+   lang: en;
+    margin: 1em 0;
+    -webkit-hyphens: auto;
+    -moz-hyphens: auto;
+     -ms-hyphens: auto;
+      /*-o-hyphens: auto;*/
+    hyphens: auto
+  }
+  
+  img {
+    max-width: 100%;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    color: #3A6072AA;
+    line-height: 125%;
+    margin-top: 2em;
+    font-weight: normal;
+  }
+  
+  h4, h5, h6 {
+    font-weight: bold;
+  }
+  
+  h1 {
+    font-size: 2.5em;
+  }
+  
+  h2 {
+    font-size: 1.8em;
+  }
+  
+  h3 {
+    font-size: 1.5em;
+  }
+  
+  h4 {
+    font-size: 1.2em;
+  }
+  
+  h5 {
+    font-size: 1em;
+  }
+  
+  h6 {
+    font-size: 0.9em;
+  }
+  
+  blockquote {
+    color: #666666;
+    margin: 0;
+    padding-left: 3em;
+    border-left: 0.5em #EEE solid;
+  }
+  
+  hr {
+    display: block;
+    height: 2px;
+    border: 0;
+    border-top: 1px solid #aaa;
+    border-bottom: 1px solid #eee;
+    margin: 1em 0;
+    padding: 0;
+  }
+  
+  pre, code, kbd, samp {
+    color: #000;
+    font-family: monospace, monospace;
+    _font-family: 'courier new', monospace;
+    font-size: 0.98em;
+  }
+  
+  pre {
+    white-space: pre;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  
+  b, strong {
+    font-weight: bold;
+  }
+  
+  dfn {
+    font-style: italic;
+  }
+  
+  ins {
+    background: #ff9;
+    color: #000;
+    text-decoration: none;
+  }
+  
+  mark {
+    background: #ff0;
+    color: #000;
+    font-style: italic;
+    font-weight: bold;
+  }
+  
+  sub, sup {
+    font-size: 75%;
+    line-height: 0;
+    position: relative;
+    vertical-align: baseline;
+  }
+  
+  sup {
+    top: -0.5em;
+  }
+  
+  sub {
+    bottom: -0.25em;
+  }
+  
+  ul, ol {
+    margin: 1em 0;
+    padding: 0 0 0 2em;
+  }
+  
+  li p:last-child {
+    margin-bottom: 0;
+  }
+  
+  ul ul, ol ol {
+    margin: .3em 0;
+  }
+  
+  dl {
+    margin-bottom: 1em;
+  }
+  
+  dt {
+    font-weight: bold;
+    margin-bottom: .8em;
+  }
+  
+  dd {
+    margin: 0 0 .8em 2em;
+  }
+  
+  dd:last-child {
+    margin-bottom: 0;
+  }
+  
+  img {
+    border: 0;
+    -ms-interpolation-mode: bicubic;
+    vertical-align: middle;
+  }
+  
+  figure {
+    display: block;
+    text-align: center;
+    margin: 1em 0;
+  }
+  
+  figure img {
+    border: none;
+    margin: 0 auto;
+  }
+  
+  figcaption {
+    font-size: 0.8em;
+    font-style: italic;
+    margin: 0 0 .8em;
+  }
+  
+  table {
+    margin-bottom: 2em;
+    border-bottom: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    border-spacing: 0;
+    border-collapse: collapse;
+  }
+  
+  table th {
+    padding: .2em 1em;
+    background-color: #eee;
+    border-top: 1px solid #ddd;
+    border-left: 1px solid #ddd;
+  }
+  
+  table td {
+    padding: .2em 1em;
+    border-top: 1px solid #ddd;
+    border-left: 1px solid #ddd;
+    vertical-align: top;
+  }
+  
+  .author {
+    font-size: 1.2em;
+    text-align: center;
+  }
+  
+  @media only screen and (min-width: 480px) {
+    body {
+      font-size: 14px;
+    }
+  }
+  @media only screen and (min-width: 768px) {
+    body {
+      font-size: 16px;
+    }
+  }
+  @media print {
+    * {
+      background: transparent !important;
+      color: black !important;
+      filter: none !important;
+      -ms-filter: none !important;
+    }
+  
+    body {
+      font-size: 12pt;
+      max-width: 100%;
+    }
+  
+    a, a:visited {
+      text-decoration: underline;
+    }
+  
+    hr {
+      height: 1px;
+      border: 0;
+      border-bottom: 1px solid black;
+    }
+  
+    a[href]:after {
+      content: " (" attr(href) ")";
+    }
+  
+    abbr[title]:after {
+      content: " (" attr(title) ")";
+    }
+  
+    .ir a:after, a[href^="javascript:"]:after, a[href^="#"]:after {
+      content: "";
+    }
+  
+    pre, blockquote {
+      border: 1px solid #999;
+      padding-right: 1em;
+      page-break-inside: avoid;
+    }
+  
+    tr, img {
+      page-break-inside: avoid;
+    }
+  
+    img {
+      max-width: 100% !important;
+    }
+  
+    @page :left {
+      margin: 15mm 20mm 15mm 10mm;
+  }
+  
+    @page :right {
+      margin: 15mm 10mm 15mm 20mm;
+  }
+  
+    p, h2, h3 {
+      orphans: 3;
+      widows: 3;
+    }
+  
+    h2, h3 {
+      page-break-after: avoid;
+    }
+  }
+  
+  </style>
+</head>
+<body>
+<div id="header">
+<h1 class="title">HaMMLET(1)</h1>
+</div>
+<h1 id="name">NAME</h1>
+<p><strong>HaMMLET</strong> - Fast Bayesian Inference for Hidden Markov Models using Dynamic Haar Wavelet Compression.</p>
+<!-- # SYNOPSIS -->
+<!-- **hammlet** [**-v**] [**-f** *FILENAME*] [**-o** *PREFIX*] [**-R** *SEED*] [**-i** *SCHEME* ...] -->
+<!-- **hammlet** **-h** -->
+<h1 id="description">DESCRIPTION</h1>
+<p>HaMMLET is a fast Forward-Backward Gibbs (FBG) sampler for Bayesian HMM. It also implements alternative sampling schemes (currently supported: Mixture Model sampling). Given numerical input data and prior parameters, it outputs a full distribution of latent HMM states for each position, integrating over the entire parameter space. In modern applications, such as the detection of copy-number variants (CNV) using whole-genome sequencing data, the input sizes are on the order of millions to billions of data points. To avoid prohibitively long running times and slow convergence, HaMMLET uses the Haar wavelet transform to dynamically compress the data into blocks of sufficient statistics, based on the lowest noise estimate in each iteration of the Gibbs sampler.</p>
+<p>When using HaMMLET, please cite the following paper:</p>
+<blockquote>
+<p>Wiedenhoeft, J., Brugel, E., &amp; Schliep, A. (2016). &quot;Fast Bayesian Inference of Copy Number Variants using Hidden Markov Models with Wavelet Compression&quot;. PLOS Computational Biology, 12(5), e1004871. http://doi.org/10.1371/journal.pcbi.1004871. This paper was selected for oral presentation at RECOMB 2016.</p>
+</blockquote>
+<h1 id="usage-example">USAGE EXAMPLE</h1>
+<p><strong>hammlet  -f data.csv  -o hmm/result_ .csv  -O blocks compression  -s C 3 2  -i M 100 0 F 200 5  -a  -t 10 1</strong></p>
+<p>This reads data from <strong>data.csv</strong>, and writes state marginals to <strong>hmm/result_</strong>marginals<strong>.csv</strong> (notice the space, -o takes two arguments!). It also outputs the sizes of <strong>blocks</strong> for each iteration to hmm/result_<strong>blocks</strong>.csv, and <strong>compression</strong> ratios to hmm/result_<strong>compression</strong>.csv. There are 9 hidden states in total, resulting from all possible <strong>combinations</strong> of <strong>3</strong> emission distributions to generating <strong>2</strong>-dimensional data. Sampling of state sequences is done by first running <strong>mixture sampling</strong> for <strong>100</strong> iterations, <strong>none</strong> of which is recorded, followed by <strong>FBG</strong> for <strong>200</strong> iterations, recording every <strong>fifth</strong> of them. This is done using <strong>automatic</strong> emission priors with standard parameters. Prior <strong>transition</strong> weights are <strong>10</strong> for self-transitions, and <strong>1</strong> for transition between different states.</p>
+<h1 id="options">OPTIONS</h1>
+<dl>
+<dt>-h | -help</dt>
+<dd>Display a friendly help message.
+</dd>
+<dt>-v | -verbose</dt>
+<dd>Print information to <em>STDOUT</em> during run-time.
+</dd>
+<dt>-g | -arguments</dt>
+<dd>Print arguments. For each flag, print an asterisk if it was set by the user, as well as the parameters being used. If the flag was not set, these are the default parameters.
+</dd>
+</dl>
+<h2 id="input-and-output">INPUT AND OUTPUT</h2>
+<p>HaMMLET reads the observed emission values as a stream of whitespace-separated numeric values from <em>STDIN</em>, unless <strong>-f</strong> is specified. Linebreaks are treated as whitespace, and no formatting such as CSV is interpreted. For multivariate models, the dimensions of each position are filled in increasing order, after which dimensions for the next position are filled. If the number of input values is not a multiple of the number of dimensions (see <strong>-s</strong> option), an exception is thrown.</p>
+<p>The output consists of a CSV file representing a run-length encoded version of the state marginals. The first column represents the length of a segment (number of input positions), and subsequent columns represent the recorded counts for each state, in increasing order of state number.</p>
+<dl>
+<dt>-f <em>FILE</em> | -input-file <em>FILE</em></dt>
+<dd>Read input data from <em>FILE</em> instead of <em>STDIN</em>. <!-- TODO If multiple files are provided, they are read in the given order,  as if they were oncatenated into a single file. -->
+</dd>
+<dt>-o <em>PREFIX</em> | -output-prefix <em>PREFIX</em></dt>
+<dd>The prefix for the output file paths. <em>PREFIX</em> is extended by a short description and an appropriate file extension to yield an output file name, such as <em>PREFIX</em>marginals.csv for the file containing the marginal state distribution; for additional files, see the <strong>-O</strong> option for details. Existing files are silently overwritten. [Default: <strong>hammlet</strong>] <!-- TODO make overwrite optional? -->
+</dd>
+<dt>-O <em>TYPE</em> ... | -output-data <em>TYPE</em> ...</dt>
+<dd><p>Specify a list of data types to be output in addition to the marginals. This only applies to recorded iterations as specified using <strong>-i</strong>. It may contain any of the following:</p>
+<dl>
+<dt>S | sequences</dt>
+<dd>Output each state sequence individually, one per line, separated by whitespace, using run-length encoding of the form <em>LENGTH</em>:<em>STATE</em>.
+</dd>
+<dt>P | parameters</dt>
+<dd>Output the emission parameters for each state in increasing order of state number, separated by tabs.
+</dd>
+<dt>B | blocks</dt>
+<dd>Output the block structure (sizes of all blocks) created by dynamic compression, separated by whitespace.
+</dd>
+<dt>C | compression</dt>
+<dd>Output the compression ratio for each iteration.
+</dd>
+<dt>G | segments</dt>
+<dd>Output the number of segments in each iteration, as well as the number of values used to store the compressed marginals (for diagntic purposes).
+</dd>
+</dl>
+</dd>
+</dl>
+<!--    The output for each *TYPE* is written to *PREFIX*_*TYPE*.csv (see **-o**), using the long version of *TYPE*.  If **-O** is specified with an empty list, an exception is thrown. -->
+<dl>
+<dt>-w | -overwrite</dt>
+<dd>Overwrite existing output files. If <strong>-w</strong> is not provided and an output file already exists, an exception is thrown.
+</dd>
+</dl>
+<h2 id="model-specifications">MODEL SPECIFICATIONS</h2>
+<dl>
+<dt>-s <em>PARAM</em> | -states <em>PARAM</em></dt>
+<dd><p>Definition of hidden states. <em>PARAM</em> may take the following forms [Default: <strong>3</strong>]:</p>
+<dl>
+<dt><em>NRSTATES</em></dt>
+<dd>The typical, simple case of an HMM: Given a single unsigned integer <em>NRSTATES</em>, the data is assumed to be one-dimensional and generated from this many hidden states.
+</dd>
+<dt><em>MAPPING</em> <em>NRPARAM</em> [<em>NRDIM</em>]</dt>
+<dd><p>State definitions in the form of a <em>MAPPING</em>. The data has <em>NRDIM</em> dimensions, and there are <em>NRPARAM</em> different emission distributions. If <em>NRDIM</em> is not provided, it defaults to <strong>1</strong>. A state is defined as a vector S of size <em>NRDIM</em>, where S[i] denotes that the i-th dimension of an emission sampled from this state was generated from the S[i]-th emission distribution. For instance, if a 3-dimensional data point is assigned to a state with mapping S=[1 1 2], its first two dimensions are assumed to be generated by emission distribution 1, and its third dimension by emission distribution 2. The following <em>MAPPING</em> schemes are supported:</p>
+<dl>
+<dt>C | combination</dt>
+<dd>States express all possible combinations of emission distributions, resulting in <em>NRPARAMS</em>^<em>NRDIM</em> different states. For instance, <strong>-s C 2 3</strong> generates 2^3=8 state mappings: (1 1 1), (1 1 2), (1 2 1), (1 2 2), (2 1 1), (2 1 2), (2 2 1), and (2 2 2). Note that <strong>-s C 3 1</strong> is equivalent to <strong>-s 3</strong>.
+</dd>
+</dl>
+<p><em>NOTE</em>: No other mapping schemes are currently supported.</p>
+</dd>
+</dl>
+</dd>
+<dt>-e <em>DIST</em> <em>PARAM</em> | -emissions <em>DIST</em> <em>PARAM</em></dt>
+<dd><p>Set the emissions to be variates of a given <em>DIST</em>ribution, and let their parameters be sampled from priors using the given hyper<em>PARAM</em>eters. The behavior of this option depends on the number of tokens: Let K be the number of hyperparameters per prior, and D the number of emission distributions (see <strong>-s</strong> option). If <em>PARAM</em> consists of K tokens, all priors are assumed to have those same hyperparameters. If there are N*K tokens, each prior gets its specific set of hyperparameters. In all other cases, an exception is thrown. Arguments may take the following forms [Default: <strong>normal</strong>. This means that <strong>-a</strong> has to be provided if <strong>-p</strong> is not.]:</p>
+<dl>
+<dt><strong>normal</strong> [<em>PARAMs</em>]</dt>
+<dd>For Normal emissions, <em>PARAM</em> is a collection of 4-tuples <em>ALPHA</em> <em>BETA</em> <em>MU</em> <em>NU</em>, representing parameters to the Normal-Inverse Gamma distribution, sorted by state. If <strong>-a</strong> is set, <em>PARAM</em> is <em>VAR</em> <em>P</em> instead, where <em>P</em> is the probability to sample emission variances less or equal than <em>VAR</em>; if these parameters are not provided, they default to <strong>0.2 0.9</strong>.
+</dd>
+</dl>
+<p><em>NOTE</em>: No other emission type than Normal is currently supported.</p>
+<p>If neither <strong>-a</strong> nor <em>PARAM</em> is provided, an exception is thrown.</p>
+</dd>
+<dt>-a | -auto-priors</dt>
+<dd>Use automatic hyperparameters for emission priors, based on the wavelet transform of the data. This changes the meaning of parameters passed to <strong>-p</strong>.
+</dd>
+<dt>-t <em>VALUES</em> | -transitions <em>VALUES</em></dt>
+<dd><p>Parameters for transition probabilities. These are the parameters alpha for a Dirichlet distribution. <em>VALUES</em> can take the following forms:</p>
+<dl>
+<dt><em>ALPHA</em></dt>
+<dd>A single number means that all alpha-parameters are set to the same value.
+</dd>
+<dt><em>SELF</em> <em>TRANS</em></dt>
+<dd>All alphas corresponding to self-transitions are set to <em>SELF</em>, the others to <em>TRANS</em>.
+</dd>
+</dl>
+</dd>
+</dl>
+<!--    TODO accept full matrix, maybe from file? -->
+<dl>
+<dt>-S | -no-self-transitions</dt>
+<dd>Do not use self-transition probabilities within blocks (this has no effect for mixture sampling). <!-- TODO should this go to the COMPRESSION section? -->
+</dd>
+<dt>-I <em>ALPHA</em> | -initial <em>ALPHA</em></dt>
+<dd>Sets the alpha parameter of the Dirichlet distribution used as a prior for the initial state distribution. <!-- If one parameter is passed, all alphas are set to that value. If the number of parameters matches the number of states, their alphas are set individually. Otherwise, an exception is thrown. --> <!-- TODO define entire vector manually -->
+</dd>
+</dl>
+<h2 id="sampling-scheme">SAMPLING SCHEME</h2>
+<dl>
+<dt>-R | -random-seed</dt>
+<dd>An unsigned integer value to be used to seed the random number generator. If <strong>-R</strong> is not set, a seed is generated from the current epoch time. A seed should be set manually using <strong>-R</strong> whenever reproducibility is required.
+</dd>
+<dt>-i <em>SCHEME</em> ... | -iterations <em>SCHEME</em> ...</dt>
+<dd><p>A list of sampling <em>SCHEME</em>s, each of which consists of three tokens, <em>TYPE</em> <em>ITER</em> <em>THIN</em>:</p>
+<ol style="list-style-type: decimal">
+<li><p>The <em>TYPE</em> of sampling method to be used is one of the following:</p>
+<dl>
+<dt>F</dt>
+<dd><em>Forward-Backward Gibbs sampling</em> uses a dynamic programming trellis to quickly sample state sequences unaffected by auto-correlation due to adjacent blocks. FBG is considered the state-of-the-art for Gibbs sampling in HMM. Running times depends quadratically on the number of states.
+</dd>
+<dt>M</dt>
+<dd><em>Mixture sampling</em> treats compression as a way to impose equality relations on otherwise exchangeable data points. It completely ignores transition probabilities passed to the model, and instead assumes transitions to be implied in the block structure alone. This is much faster than the other methods, as it depends linearly on the number of states, but is not truly an HMM. High-variance components are prone to oversegmentation, and spurious differences in sampled values can lead to segments which come from the same true state being assigned to different states. However, if the variance is expected to be similar over all states, this variant can yield reasonably good results very fast.
+</dd>
+</dl></li>
+<li>The number of sampling <em>ITER</em>ations.</li>
+<li><p>The type of <em>THIN</em>ning to be used to record sampled state sequences (0=record none, 1=record all, 2=record every second sample, etc.).</p></li>
+</ol>
+<p>If the total number of tokens provided to <strong>-i</strong> is not a multiple of 3, an exception is thrown. [Default: <strong>M 100 0 F 250 10</strong>, i.e. an unrecorded burn-in of 100 mixture iterations, followed by 250 FBG iterations with thinning factor 10, resulting in 25 recorded state sequences.]</p>
+</dd>
+</dl>
+<h2 id="compression">COMPRESSION</h2>
+<!--
+-y *TYPE* [*PARAM*] | --data-structure *TYPE* [*PARAM*]
+:   The data structure to be used for dynamic compression, where *TYPE* is one of the following [Default: **B**]:
+
+    B | breakpointarray
+    : Uses a *breakpoint array*. This data structure yields the exact compression scheme implied by the discontinuities in the wavelet regression. The iteration over blocks has time complexity O(log N), where N is the size of each block. The optional *PARAM*  has no effect for this option.-->
+<!--    TODO make PARAM a filename of precomputed weights, or SLIDING LENGTH -->
+<!--    
+    T, wavelettree
+    : The *wavelet tree* is a highly optimized implementation of the data structure used in the 2016 version (e.g.&nbsp;**SEE ALSO**). It uses twice as much memory as the breakpoint array. It achieves query complexity O(1) for each block, at the expense of suboptimal compression, as it introduces additional block boundaries not implied by discontinuities in wavelet regression. It also has a more complex constructor. The breakpoint array should be prefered to the wavelet tree. The optional *PARAM* is a tuple *SKIP* *LEVELS* with the following parameters [Default: **0 0**]:
+    
+        *SKIP*
+        :   Determines the number of tree levels to be skipped when recursively calculating the subtree coefficient maxima. Setting this to **1** is a good way to handle salt-and-pepper noise.
+        
+        *LEVELS*
+        :   When creating blocks, the wavelet tree is traversed in DFS order until a suitable block is found. Setting *LEVELS* to a non-zero number means that the tree is traversed by that many more additional levels, which splits the original block and yields more fine-grained compression. The compression factor is decreased by a factor of up to 2^*LEVELS*.
+    -->
+<!--    L, legacy
+    : This is the same as **T**, but using the original implementation, including out-of-place computation of the wavelet transform. It has much worse memory consumption, and will result in excessive swapping for large data sets. It is provided for legacy and comparative evaluation purposes only, and should never be used in any other setting. -->
+<!--    S, slidinghaar
+    : Uses a breakpoint array created by sliding a Haar wavelet of support size 2 * *PARAM* along the data. This has a probabilistic interpretation, but does not work well in practice.-->
+<!--    TODO chunk size/input compression? -->
+<dl>
+<dt>-b <em>MIN</em> <em>MAX</em> | -block-limits <em>MIN</em> <em>MAX</em></dt>
+<dd>The minimum and maximum block size allowed during compression. 0 means no limit. [Default: <strong>0 0</strong>]
+</dd>
+<dt>-m <em>FLOAT</em> | -weight-multiplier <em>FLOAT</em></dt>
+<dd>Multiply weights by this factor, to avoid overcompression. [Default: <strong>1.0</strong>]
+</dd>
+</dl>
+<h1 id="caveats">CAVEATS</h1>
+<p>While HaMMLET is designed to minimize memory consumption (univariate models of 100 million data points can be handled on a standard laptop), one should still be aware that the size of the marginal state records and the trellis cannot be predicted before running the inference. As a consequence, data that only allows for low compression ratios may still incur huge memory overhead, as it negates the central approach that makes FBG feasible on such scales. If memory consumption gets out of hand, you might want to try increasing the number of burn-in steps; if the sampler has not fully converged, individual iterations might have very low compression, even though the data itself would allow for better ratios. Likewise, decreasing the number of states might be an option, since superfluous state parameters will be sampled solely from the prior and yield arbitrarily low noise variances. If this does not work, using Mixture model sampling might be an option, but results should be interpreted with care, see <strong>-i</strong> option.</p>
+<p>Though the model should work for any emission distribution in the exponential family (Normal, Poisson, Exponential, Laplace, Gamma, Chi-Squared etc.), only Normal emissions are implemented at the moment.</p>
+<p>Multivariate models are supported in the sense that multiple data dimensions may share their generating parameters. True multivariate models such as Normals with non-diagonal covariance matrix are not yet supported.</p>
+<p>Plotting the results is done using external Python libraries (NumPy, Matplotlib). As these are not optimized for large-scale applications, this can take a long time, often longer than the inference itself.</p>
+<p>HaMMLET does not support the convention of combining single-letter options, such as replacing <strong>-x -y -z</strong> by <strong>-xyz</strong>.</p>
+<h1 id="history">HISTORY</h1>
+<p>The first version of HaMMLET was developed by Eric Brugel and John Wiedenhoeft, and published in 2016 in PLOS CompBio and RECOMB. It used a wavelet tree data structure for dynamic compression. The current version is designed for minimal memory footprint in large-scale applications. Changes include: a breakpoint array data structure for optimal wavelet compression, an in-place algorithm for its construction, run-length-encoded output, and a queue-based implementation to record run-length-encoded state sequences. It is currently developed and maintained by John Wiedenhoeft (<a href="https://orcid.org/0000-0002-6935-1517" title="John&#39;s ORCID site">ORCID: 0000-0002-6935-1517</a>) at <a href="https://github.com/wiedenhoeft/HaMMLET" class="uri">https://github.com/wiedenhoeft/HaMMLET</a>.</p>
+<!-- TODO -->
+<!-- # SYSTEM REQUIREMENTS -->
+<!-- Ubuntu, gcc, xxd, man, pandoc, python, matplotlib, pyplot -->
+<h1 id="reporting-bugs">REPORTING BUGS</h1>
+<p>GitHub issue tracking system: <a href="https://github.com/wiedenhoeft/HaMMLET/issues" class="uri">https://github.com/wiedenhoeft/HaMMLET/issues</a></p>
+<h1 id="see-also">SEE ALSO</h1>
+<p>Current hosting site: <a href="https://wiedenhoeft.github.io/HaMMLET/" class="uri">https://wiedenhoeft.github.io/HaMMLET/</a></p>
+<p>Current repository: <a href="https://github.com/wiedenhoeft/HaMMLET" class="uri">https://github.com/wiedenhoeft/HaMMLET</a></p>
+<p>Stable link: <a href="https://schlieplab.org/Software/HaMMLET/" class="uri">https://schlieplab.org/Software/HaMMLET/</a></p>
+<p>Documentation in different formats (pdf, html, txt, man) can be found in the doc/ subfolder of HaMMLET's installation directory.</p>
+</body>
+</html>
