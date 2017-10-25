@@ -119,19 +119,6 @@ This only applies to recorded iterations as specified using
 It may contain any of the following:
 .RS
 .TP
-.B S | sequences
-Output each state sequence individually, one per line, separated by
-whitespace, using run\-length encoding of the form
-\f[I]LENGTH\f[]:\f[I]STATE\f[].
-.RS
-.RE
-.TP
-.B P | parameters
-Output the emission parameters for each state in increasing order of
-state number, separated by tabs.
-.RS
-.RE
-.TP
 .B B | blocks
 Output the block structure (sizes of all blocks) created by dynamic
 compression, separated by whitespace.
@@ -143,10 +130,31 @@ Output the compression ratio for each iteration.
 .RS
 .RE
 .TP
+.B D | mapping
+Lines represent states in ascending order.
+Columns represent data dimensions.
+Entries represent the index of emission distributions for each state and
+data dimension.
+.RS
+.RE
+.TP
 .B G | segments
 Output the number of segments in each iteration, as well as the number
 of values used to store the compressed marginals (for diagntic
 purposes).
+.RS
+.RE
+.TP
+.B P | parameters
+Output the emission parameters for each state in increasing order of
+state number, separated by tabs.
+.RS
+.RE
+.TP
+.B S | sequences
+Output each state sequence individually, one per line, separated by
+whitespace, using run\-length encoding of the form
+\f[I]LENGTH\f[]:\f[I]STATE\f[].
 .RS
 .RE
 .RE

@@ -57,20 +57,23 @@ output consists of a CSV file representing a run-length encoded version of the s
 -O *TYPE* ... | -output-data  *TYPE* ...
 :	Specify a list of data types to be output in addition to the marginals. This only applies to recorded iterations as specified using **-i**. It may contain any of the following:
 
-	S | sequences
-	:	Output each state sequence individually, one per line, separated by whitespace, using run-length encoding of the form *LENGTH*:*STATE*.
-	
-	P | parameters
-	:	Output the emission parameters for each state in increasing order of state number, separated by tabs.
-	
 	B | blocks
 	:	Output the block structure (sizes of all blocks) created by dynamic compression, separated by whitespace.
 	
 	C | compression
 	:	Output the compression ratio for each iteration.
 	
+	D | mapping
+	:	Lines represent states in ascending order. Columns represent data dimensions. Entries represent the index of emission distributions for each state and data dimension.
+	
 	G | segments
 	:	Output the number of segments in each iteration, as well as the number of values used to store the compressed marginals (for diagntic purposes).
+	
+	P | parameters
+	:	Output the emission parameters for each state in increasing order of state number, separated by tabs.
+	
+	S | sequences
+	:	Output each state sequence individually, one per line, separated by whitespace, using run-length encoding of the form *LENGTH*:*STATE*.
 	
 <!-- 	The output for each *TYPE* is written to *PREFIX*_*TYPE*.csv (see **-o**), using the long version of *TYPE*.  If **-O** is specified with an empty list, an exception is thrown. -->
        

@@ -181,17 +181,20 @@ int main( int argc, const char* argv[] ) {
 		if ( dataStructure == "B" ||  dataStructure == "breakpointarray" ) {
 			// TODO any parameters to breakpoint array would go here
 
-// 		} else 
+
+
+
+// 		} else
 // 				if ( dataStructure == "wavelettree" ) {
 
-					// TODO parameters to wavelet tree
+			// TODO parameters to wavelet tree
 // 			const size_t nrSkipLevels = args.parse<size_t>( "-w", 0, 0 );
 // 		const size_t nrAdditionalLevels = args.parse<size_t>( "-w", 1, 0 );
 // 		const bool useFullCompression = args.parse<bool>( "-w", 2, true );
 
-				} else {
-					throw runtime_error( "Unknown data structure \"" + dataStructure + "\", or not implemented yet!" );
-				}
+		} else {
+			throw runtime_error( "Unknown data structure \"" + dataStructure + "\", or not implemented yet!" );
+		}
 
 		const real_t weightMultiplier = args.parse<real_t>( "-m" );
 
@@ -221,24 +224,7 @@ int main( int argc, const char* argv[] ) {
 
 		//// Parse the input data from a list of files or stdin. For multivariate data, dimensions are filled before filling the next position.
 
-		// Initially, this vector is going to contain the raw input data, and sufficient statistics will be created from it. Later, it will be transformed to breakpoint weights or the like.
-		vector<real_t> inputValues;
 
-		// Read values into <inputValues>
-		// TODO right now, individual files are concatenated. We should also allow multiple files to contain multiple dimensions.
-		if ( args.isSet( "-f" ) ) { // read from input files
-			for ( string fname : args.parseVector<string>( "-f" ) ) {	// iterate over input file names
-				ifstream fin( fname );
-				if ( fin ) {
-					inputValues.reserve( inputValues.size() + nrLinesInFile( fin ) );
-					istreamToVector( fin, inputValues );
-				} else {
-					throw runtime_error( "Cannot read from input file " + fname + "!" );
-				}
-			}
-		} else {	// read from STDIN
-			istreamToVector( cin, inputValues );
-		}
 
 
 		//// Sampling scheme ////
@@ -260,17 +246,19 @@ int main( int argc, const char* argv[] ) {
 		outputArgs.registerFlags( {"P", "parameters"} );
 		outputArgs.registerFlags( {"B", "blocks"} );
 		outputArgs.registerFlags( {"C", "compression"} );
+		outputArgs.registerFlags( {"D", "mapping"} );	// output the emission mappings for each state
 		outputArgs.registerFlags( {"G", "segments"} );	// in each iteration: number of marginal segments, number of values used to store marginals (for diagnostics)
 		outputArgs.parseArgs();
 
-		Records records( inputValues.size()*nrDataDim, outputPrefix, outputSuffix, nrStates );
-		records.setRecordStateSequence( outputArgs.isSet( "sequences" ), overwrite );
-		records.setRecordTheta( outputArgs.isSet( "parameters" ), overwrite );
-		records.setRecordBlocks( outputArgs.isSet( "blocks" ), overwrite );
-		records.setRecordCompression( outputArgs.isSet( "compression" ), overwrite );
-		records.setRecordMarginals( outputArgs.isSet( "marginals" ), overwrite );
-		records.setRecordSegments( outputArgs.isSet( "segments" ), overwrite );
 
+		// output state mappings to file if required
+		if (outputArgs.isSet("D")){
+			//TODO
+		}
+
+
+		// inputValues holds things like breakpoint weights, depending on the data structure being used
+		vector<real_t> inputValues;
 
 
 		// TODO allow to ignore invalid input?
@@ -278,13 +266,39 @@ int main( int argc, const char* argv[] ) {
 
 			// create sufficient statistics for input data
 			vector<SufficientStatistics<Normal>> stats;
-			inputToStats( inputValues, stats );
+
+			// TODO right now, individual files are concatenated. We should also allow multiple files to contain multiple dimensions.
+			if ( args.isSet( "-f" ) ) { // read from input files
+				for ( string fname : args.parseVector<string>( "-f" ) ) {	// iterate over input file names
+					ifstream fin( fname );
+					if ( fin ) {
+						// TODO this can still lead to reallocation, fix later
+						// TODO MaxletTransform does not work for multiple files in its current state
+						MaxletTransform( fin, inputValues, stats, nrDataDim, inputValues.size() + nrLinesInFile( fin ) );
+					} else {
+						throw runtime_error( "Cannot read from input file " + fname + "!" );
+					}
+				}
+			} else {	// read from STDIN
+				MaxletTransform( cin, inputValues, stats, nrDataDim );
+			}
+
+			const size_t T = inputValues.size();
+
+			Records records( T, outputPrefix, outputSuffix, nrStates );
+			records.setRecordStateSequence( outputArgs.isSet( "sequences" ), overwrite );
+			records.setRecordTheta( outputArgs.isSet( "parameters" ), overwrite );
+			records.setRecordBlocks( outputArgs.isSet( "blocks" ), overwrite );
+			records.setRecordCompression( outputArgs.isSet( "compression" ), overwrite );
+			records.setRecordMarginals( outputArgs.isSet( "marginals" ), overwrite );
+			records.setRecordSegments( outputArgs.isSet( "segments" ), overwrite );
+
 
 			if ( dataStructure == "B" || dataStructure == "breakpointarray" ) {
 
 
 				// transform input data to Haar breakpoint weights
-				HaarBreakpointWeights( inputValues, nrDataDim );
+				HaarBreakpointWeights( inputValues );
 
 				// multiply weights
 				for ( auto & w : inputValues ) {
@@ -292,7 +306,7 @@ int main( int argc, const char* argv[] ) {
 				}
 
 
-				Emissions<BreakpointArray, Normal> y( inputValues, stats, nrDataDim );
+				Emissions<BreakpointArray, Normal> y( inputValues, stats );	// TODO nrDataDim: to pass or not to pass?
 
 
 				// TODO this version calculates the same autopriors for all dimensions, adapt for flexible mapping
@@ -313,36 +327,30 @@ int main( int argc, const char* argv[] ) {
 				);
 
 
-
+				// check that iterations are grouped in triples
 				if ( args.nrTokens( "-i" ) % 3 != 0 ) {
 					throw runtime_error( "Parameters for -i must be multiples of 3!" );
 				}
 
 
+				// get iteration types
 				for ( size_t i = 0; i < args.nrTokens( "-i" ); i += 3 ) {
 					string method = args.parse<string> ( "-i", i );	// D=direct gibbs, M=mixture, F = forward-backward gibbs
 					size_t iterations = args.parse<size_t> ( "-i", i + 1 );
 					size_t thinning = args.parse<size_t> ( "-i", i + 2 );
 
-
-
-					if ( method == "F" ) {
+					if ( method == "F" ) {	// Forward-Backward sampling
 						StateSequence< ForwardBackward > q( RNG );
 						sampleHMM( y, tau_theta, theta, tau_A, A, tau_pi, pi, q, mapping, iterations, thinning, records, i == 0, useSelfTrans );
-
-						//TODO
-//                     } else if ( method == "D" ) {
-//                         cout << "DG" << endl;
-//                         StateSequence< DirectGibbs > q ( RNG );
-//                         sampleHMM ( y, tau_theta, theta, tau_A, A, tau_pi, pi, q, mapping, iterations, thinning, records, i == 0, useSelfTrans );
-					} else
-						if ( method == "M" ) {
-//                         cout << "MM" << endl;
-							StateSequence< Mixture > q( RNG );
-							sampleHMM( y, tau_theta, theta, tau_A, A, tau_pi, pi, q, mapping, iterations, thinning, records, i == 0, useSelfTrans );
-						} else {
-							throw runtime_error( "Unknown sampling type " + method + "!" );
-						}
+					} else if ( method == "M" ) {	// Mixture sampling
+						StateSequence< Mixture > q( RNG );
+						sampleHMM( y, tau_theta, theta, tau_A, A, tau_pi, pi, q, mapping, iterations, thinning, records, i == 0, useSelfTrans );
+// 					} else if ( method == "D" ) {	// Direct Gibbs sampling
+// 						StateSequence< DirectGibbs > q( RNG );
+// 						sampleHMM( y, tau_theta, theta, tau_A, A, tau_pi, pi, q, mapping, iterations, thinning, records, i == 0, useSelfTrans );
+					} else {
+						throw runtime_error( "Unknown sampling type " + method + "!" );
+					}
 				}
 				// NOTE if marginals are to be saved, the output routine is automatically triggered by the destructor of records
 			}
@@ -364,4 +372,7 @@ int main( int argc, const char* argv[] ) {
 
 
 }
+
+
+
 

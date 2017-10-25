@@ -19,7 +19,7 @@ class StateMarginals {
 		deque<marginal_t> mCountQ;	// store marginal counts as negative values, and use positive values to denote the state of the next element of states are skipped due to having zero count. The size of this is guaranteed to be t most #segments*(1+max(#states, #iterations)), plus 1/32 bit overhead per element due to using std::deque.
 		deque<size_t> mSizeQ;
 		size_t mCurrentindex;
-		size_t mSize;
+// 		size_t mSize;
 		size_t mNrIterations;
 		size_t mNrStates;	// the total number of states, i.e. the highest added state label + 1
 		size_t mNrSegments;
@@ -109,7 +109,7 @@ class StateMarginals {
 		// delete copy constructor
 		StateMarginals( const StateMarginals& that ) = delete;
 
-		StateMarginals( size_t size ): mCurrentindex( 0 ), mSize( size ), mNrIterations( 0 ), mNrStates( 0 ), mNrSegments( 1 ) {
+		StateMarginals( size_t size ): mCurrentindex( 0 ), mNrIterations( 0 ), mNrStates( 0 ), mNrSegments( 1 ) {
 			mSizeQ.push_back( size );
 			mCountQ.push_back( 0 );
 		}
@@ -135,7 +135,7 @@ class StateMarginals {
 					throw runtime_error( "The state sequence is shorter (" + to_string( q.size() ) + ") than the number of blocks (" + to_string( t ) + ")!" );
 				}
 				if ( t >= q.size() ) {
-					throw runtime_error( "State sequence index out of bounds!" );
+					throw runtime_error( "Cannot record, state sequence index out of bounds!" );
 				}
 				if ( q[t] == currentState ) {
 					blockSize += y.N();

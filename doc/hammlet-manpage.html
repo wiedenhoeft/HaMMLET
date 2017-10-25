@@ -384,20 +384,23 @@
 <dt>-O <em>TYPE</em> ... | -output-data <em>TYPE</em> ...</dt>
 <dd><p>Specify a list of data types to be output in addition to the marginals. This only applies to recorded iterations as specified using <strong>-i</strong>. It may contain any of the following:</p>
 <dl>
-<dt>S | sequences</dt>
-<dd>Output each state sequence individually, one per line, separated by whitespace, using run-length encoding of the form <em>LENGTH</em>:<em>STATE</em>.
-</dd>
-<dt>P | parameters</dt>
-<dd>Output the emission parameters for each state in increasing order of state number, separated by tabs.
-</dd>
 <dt>B | blocks</dt>
 <dd>Output the block structure (sizes of all blocks) created by dynamic compression, separated by whitespace.
 </dd>
 <dt>C | compression</dt>
 <dd>Output the compression ratio for each iteration.
 </dd>
+<dt>D | mapping</dt>
+<dd>Lines represent states in ascending order. Columns represent data dimensions. Entries represent the index of emission distributions for each state and data dimension.
+</dd>
 <dt>G | segments</dt>
 <dd>Output the number of segments in each iteration, as well as the number of values used to store the compressed marginals (for diagntic purposes).
+</dd>
+<dt>P | parameters</dt>
+<dd>Output the emission parameters for each state in increasing order of state number, separated by tabs.
+</dd>
+<dt>S | sequences</dt>
+<dd>Output each state sequence individually, one per line, separated by whitespace, using run-length encoding of the form <em>LENGTH</em>:<em>STATE</em>.
 </dd>
 </dl>
 </dd>

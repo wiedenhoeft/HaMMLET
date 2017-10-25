@@ -10,8 +10,8 @@
 // In-place Haar transform, for arbitrary data sizes. Data is sorted by (position, dimension), and dimensions are processed in pseudo-parallel fashion. TODO acually make this parallel?
 // Data is treated like a greedy concatenation of vectors of sizes that are powers of two. In place where there would be the scale coefficient, the result is infinity.
 void HaarDetailCoeffs(
-    vector<real_t>& y,
-    size_t dim = 1 ) {
+	vector<real_t>& y,
+	size_t dim = 1 ) {
 
 
 	const size_t Tdim = y.size();	// T*dim
@@ -62,60 +62,16 @@ void HaarDetailCoeffs(
 }
 
 
-// Takes a vector, computes its absolute values and merges all dimension by taking the maximum of their absolute values. This changes the vector size by a factor of 1/dim.
-void mergeDimensions(
-    vector<real_t>& y,
-    const size_t dim = 1
-) {
-	const size_t T = y.size();
-	if ( !divides( T, dim ) ) {
-		throw runtime_error( "Cannot merge dimensions, array size is not a multiple of the number of dimensions!" );
-	}
-	if ( T > 0 ) {
-		y[0] = abs( y[0] );
-	}
-	if ( dim > 1 ) {
-		if ( T > 1 ) {
-			size_t L = 0;
-			size_t R = 1;
-			size_t d = 1;
-			while ( R < T ) {
-				if ( d == dim ) {
-					d = 0;
-					L++;
-					y[L] = abs( y[R] );
-				} else {
-					y[L] = max( y[L], abs( y[R] ) );
-					d++;
-				}
-				R++;
-			}
-		}
-		y.resize( T / dim );
-	} else {
-		for ( size_t t = 0; t < T; ++t ) {
-			y[t] = abs( y[t] );
-		}
-	}
-}
 
 
-
-// takes a vector of absolute wavelet coefficients in DFS in-order layout (possibly the maxima over several dimensions), and combines all the breakpoint weights for all levels into the appropriate position.
+// Takes a maxlet transform, and computes the breakpoint weights, i.e. for each position t it computes the maximum absolute coefficient of all wavelets which have a discontinuity at t. Complexity is in-place in linear time.
 void HaarBreakpointWeights(
-    vector< real_t >& weights,
-    const size_t nrDim = 1 ) {	// TODO for sizes larger than 1
-
-	// IDEA we can use positive/negative values to mark the boundary to which the largest weight in a chunk is closer
+	vector< real_t >& weights	// absolute Haar wavelet coefficients
+) {
 	const size_t size = weights.size();
 	if ( size <= 0 ) {
 		throw runtime_error( "Cannot compute Haar breakpoint weights, vector is empty!" );
 	}
-
-
-	HaarDetailCoeffs( weights );
-	mergeDimensions( weights, nrDim );	// merge the data dimensions
-
 	size_t index;
 	size_t L;
 	size_t R;
@@ -135,6 +91,96 @@ void HaarBreakpointWeights(
 		}
 	}
 }
+
+
+// Computes the maxlet transform (absolute Haar wavelet transform  for each dimension, then maximum of corresponding values across dimensions) from streaming input (dimensions first, then position), using only space T for coefficients and nrDim*T for statistics, plus nrDim*log2(T) for a stack. Output: coeffs.size()=T, suffstats.size() = nrDim*T
+template< typename T>
+void MaxletTransform(
+	istream& input,
+	vector<real_t>& coeffs,
+	vector< SufficientStatistics<T> >& suffstats,
+	const size_t nrDim = 1,
+	const size_t reserveT=0	// an estimate of the number of data points to avoid reallocation
+) {
+
+	if ( nrDim <= 0 ) {
+		throw runtime_error( "Number of dimensions must be positive!" );
+	}
+
+
+	if ( coeffs.size() > 0 ) {
+		throw runtime_error( "Coefficient array must be empty!" );
+	}
+
+	if ( suffstats.size() > 0 ) {
+		throw runtime_error( "Statistics array must be empty!" );
+	}
+
+	coeffs.reserve( reserveT );
+	suffstats.reserve( nrDim * reserveT );
+
+// 	stack<real_t, vector<real_t> > S;	// stack never gets larger than nrDim*log2(T), so we don't expect a lot of reallocation, and save a lot of push and pop operations due to random access
+	vector<real_t> S;
+	size_t i = 0;
+	real_t v = 0;
+	size_t dim = 0;
+
+	while ( input >> v ) {
+		S.push_back( v );
+		suffstats.push_back( SufficientStatistics<T>( v ) );
+
+		dim++;	// set dimension of next value
+		if ( dim == nrDim ) {	// filled all dimensions at index i
+			dim = 0;	// next value will be first dimension again
+
+
+			coeffs.push_back( inf );
+
+
+			size_t j = i;	// points to node indices on an upward-left path (i.e. DFS post-order)
+			size_t m = 1;	// mask to determine whether j is an index of a left child
+			real_t normalizer = sqrt2half;
+
+			while ( ( j & m ) > 0 ) {	// while j is on a left-upward path (DFS post-order)
+
+				real_t maxCoeff = 0;	// the maximum detail coefficient across dimensions at j; NOTE we cannot take the maximum with coeffs because it contains infinity
+
+				size_t L = S.size() - 2 * nrDim;	// index of left element in stack, get incremented to iterate over dimensions
+				size_t R = L + nrDim;	// likewise, index of right element in stack
+
+
+				// compute maximum of detail coefficients across dimensions
+				for ( size_t d = 0; d < nrDim; ++d ) {
+					maxCoeff = max( maxCoeff, normalizer*abs( S[L] - S[R] ) );
+					S[L] += S[R];	// add right values to left values, so only the right values need to be popped
+					L++;		// go to next dimension
+					R++;
+				}
+				coeffs[j] = maxCoeff;
+				
+
+				// pop the right values
+				for ( size_t d = 0; d < nrDim; ++d ) {
+					S.pop_back();
+				}
+
+
+				j = j - m;	// move to left parent (if current position is not a right child, the loop will exit)
+				m *= 2;	// move bit-mask to the left, i.e. check if i is still on a left-up path)
+				normalizer *= sqrt2half;	// moving up one level changes normalization factor
+			}
+			i++;
+		}
+	}
+
+
+	if ( dim != 0 ) {
+		throw runtime_error( "Input stream did not contain enough values to fill all dimensions at last position!" );
+	}
+
+	coeffs[0]=inf;
+}
+
 
 
 #endif

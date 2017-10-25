@@ -48,7 +48,7 @@ class StateSequence {
 		const marginal_t& operator[](
 		    const size_t s	) const  {
 			if ( s >= mStates.size() ) {
-				throw runtime_error( "State sequence index out of bounds!" );
+				throw runtime_error( "State sequence index "+to_string(s)+" out of bounds!" );
 			}
 			return mStates[s];
 		}
@@ -56,7 +56,7 @@ class StateSequence {
 		marginal_t operator[](
 		    const size_t s	) {
 			if ( s >= mStates.size() ) {
-				throw runtime_error( "State sequence index out of bounds!" );
+				throw runtime_error( "State sequence index "+to_string(s)+" out of bounds!" );
 			}
 			return mStates[s];
 		}
@@ -80,7 +80,7 @@ class StateSequence {
 
 #include "StateSequenceForwardBackward.hpp"
 #include "StateSequenceMixture.hpp"
-// #include "StateSequenceDirectGibbs.hpp"	# TODO
+// #include "StateSequenceDirectGibbs.hpp"	
 
 
 

@@ -86,15 +86,6 @@ OPTIONS
               marginals.  This only applies to recorded iterations as speci‐
               fied using -i.  It may contain any of the following:
 
-              S | sequences
-                     Output each state sequence individually, one per line,
-                     separated by whitespace, using run-length encoding of the
-                     form LENGTH:STATE.
-
-              P | parameters
-                     Output the emission parameters for each state in increas‐
-                     ing order of state number, separated by tabs.
-
               B | blocks
                      Output the block structure (sizes of all blocks) created
                      by dynamic compression, separated by whitespace.
@@ -102,10 +93,24 @@ OPTIONS
               C | compression
                      Output the compression ratio for each iteration.
 
+              D | mapping
+                     Lines represent states in ascending order.  Columns rep‐
+                     resent data dimensions.  Entries represent the index of
+                     emission distributions for each state and data dimension.
+
               G | segments
                      Output the number of segments in each iteration, as well
                      as the number of values used to store the compressed
                      marginals (for diagntic purposes).
+
+              P | parameters
+                     Output the emission parameters for each state in increas‐
+                     ing order of state number, separated by tabs.
+
+              S | sequences
+                     Output each state sequence individually, one per line,
+                     separated by whitespace, using run-length encoding of the
+                     form LENGTH:STATE.
 
        -w | -overwrite
               Overwrite existing output files.  If -w is not provided and an

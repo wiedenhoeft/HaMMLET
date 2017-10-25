@@ -20,7 +20,7 @@
 EXECUTABLE=hammlet
 
 COMPILER=g++
-CFLAGS=-c -Werror  --std=c++11   -fmax-errors=1 
+CFLAGS=-c -Werror  --std=c++11   -fmax-errors=1 -Wreturn-type
 # -Wall -Wuninitialized
 SOURCES=main.cpp
 OBJECTS=$(SOURCES:%.cpp=%.o)

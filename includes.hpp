@@ -120,8 +120,8 @@ using std::setprecision;
 
 
 const real_t inf = numeric_limits<real_t>::infinity();
-const real_t sqrt2 = sqrt( 2 );
-const real_t sqrt2half = sqrt2 / 2;	// sqrt(2)/2 = 1/sqrt(2)
+const real_t sqrt2 = sqrt( 2.0 );
+const real_t sqrt2half = sqrt2 / 2.0;	// sqrt(2)/2 = 1/sqrt(2)
 
 
 #endif
