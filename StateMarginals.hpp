@@ -3,16 +3,18 @@
 
 #include "includes.hpp"
 
+#include "StateMarginalsIterator.hpp"
 
 #include <deque>
 using std::deque;
 
 
 
+
+
+
+
 // NOTE Strictly speaking, there is the possibility that two adjacent segments will have the same marginals even though they were different in previous iterations. They could be merged, but this is not worth the effort in practice.
-
-
-
 
 // template<typename T>
 class StateMarginals {
@@ -24,6 +26,8 @@ class StateMarginals {
 		size_t mNrStates;	// the total number of states, i.e. the highest added state label + 1
 		size_t mNrSegments;
 
+
+		// TODO change so that 0 is always at the front
 		void addRecord(
 		    const marginal_t& state, // the state to be recorded for the current mCountQ.front()
 		    size_t blockSize ,	// the block size associated with it
@@ -42,11 +46,11 @@ class StateMarginals {
 				if ( mCountQ.size() == 0 ) {
 					throw runtime_error( "Empty count queue, this is a bug!" );
 				}
-				for ( size_t t = 0; t < mCountQ.size(); ++t ) { // push back the front segment and include the curent count
+				for ( size_t t = 0; t < mCountQ.size(); ++t ) { // push back the front segment and include the current count
 					marginal_t entry = mCountQ[t];
 					// end of the record
 					if ( entry == 0 ) {
-						if ( !done) { // if the highest state seen before is less than the one we want to add, we have yet to do so
+						if ( !done ) { // if the highest state seen before is less than the one we want to add, we have yet to do so
 							if ( s < state ) { // do we need index information?
 								mCountQ.push_back( state );
 							}
@@ -91,6 +95,7 @@ class StateMarginals {
 					mSizeQ.push_back( blockSize );
 					mSizeQ.front() -= blockSize;
 					mNrSegments++;
+					mCurrentindex++;
 					break;
 				} else {	// front segment was completely absorbed, pop it
 					mSizeQ.push_back( mSizeQ.front() );
@@ -101,7 +106,10 @@ class StateMarginals {
 					}
 					mCountQ.pop_front();	// pop zero
 				}
+				mCurrentindex++;
 			}
+			mCurrentindex = mCurrentindex % mNrSegments;
+
 		}
 
 	public:
@@ -116,10 +124,10 @@ class StateMarginals {
 
 
 
-		template<typename StateSequenceType, typename EmissionsDataStructure, typename EmissionsDistType >
+		template<typename StateSequenceType, typename B >
 		void record(
-		    const StateSequence<StateSequenceType>& q ,
-		    Emissions< EmissionsDataStructure, EmissionsDistType>& y	// TODO use a non-const wrapper around y?
+		    const StateSequenceType& q ,
+		    Blocks<B>& blocks	// TODO use a non-const wrapper around y?
 		) {
 			++mNrIterations;
 
@@ -129,8 +137,8 @@ class StateMarginals {
 
 
 			size_t t = 0;
-			y.initForward();	// this uses the previous threshold etc.
-			while ( y.next() ) {
+			blocks.initForward();	// this uses the previous threshold etc.
+			while ( blocks.next() ) {
 				if ( t >= q.size() ) {
 					throw runtime_error( "The state sequence is shorter (" + to_string( q.size() ) + ") than the number of blocks (" + to_string( t ) + ")!" );
 				}
@@ -138,13 +146,13 @@ class StateMarginals {
 					throw runtime_error( "Cannot record, state sequence index out of bounds!" );
 				}
 				if ( q[t] == currentState ) {
-					blockSize += y.N();
+					blockSize += blocks.blockSize();
 				} else {
 
 					addRecord( currentState, blockSize, 1 );
 					totalBlockSize += blockSize;
 					currentState = q[t];
-					blockSize = y.N();
+					blockSize = blocks.blockSize();
 				}
 				++t;
 			}
@@ -162,8 +170,8 @@ class StateMarginals {
 
 			totalBlockSize += blockSize;
 
-			if ( totalBlockSize != y.T() ) {
-				throw runtime_error( "Total number of chunks recorded (" + to_string( totalBlockSize ) + ") in marginals does not match the number of positions in the data(" + to_string( y.T() ) + ")!" );
+			if ( totalBlockSize != blocks.size() ) {
+				throw runtime_error( "Total number of chunks recorded (" + to_string( totalBlockSize ) + ") in marginals does not match the number of positions in the data(" + to_string( blocks.size() ) + ")!" );
 			}
 
 			if ( mNrSegments != mSizeQ.size() ) {
@@ -180,6 +188,56 @@ class StateMarginals {
 		// return the number of values used to store the compressed marginals
 		size_t internalSize() const {
 			return mCountQ.size();
+		}
+
+
+		// TODO implement:  return the segmentation induced by maximum margins
+		vector<size_t> maxMarginSegmentation() const {
+			if ( mCurrentindex != 0 ) {
+				throw runtime_error( "Cannot get maximum margins for incomplete record!" );
+			}
+
+			StateMarginalIterator<deque<marginal_t>> iter( mCountQ );
+			iter.initForward();
+			size_t pos = iter.pos();
+			size_t maxState = 0;
+			size_t maxCount = 0;
+			size_t prevMaxState = 0;
+			size_t blockSize = 1;
+			vector<size_t> sizes;	// TODO add size of first block TODO reserve
+
+			while ( iter.next() ) {
+
+				// finished current position
+				if ( iter.pos() != pos ) {
+					if ( maxState == prevMaxState && sizes.size() > 0 ) {
+						sizes.back() += blockSize;
+					} else {
+						sizes.push_back( blockSize );
+						prevMaxState = maxState;
+					}
+					pos = iter.pos();
+					maxState = 0;
+					maxCount = 0;
+
+					// TODO actual value
+					blockSize = 1;
+				}
+
+				// update maxima
+				if ( iter.count() > maxCount ) {
+					maxState = iter.state();
+					maxCount = iter.count();
+				}
+			}
+
+			if ( maxState == prevMaxState ) {
+				sizes.back() += blockSize;
+			} else {
+				sizes.push_back( blockSize );
+			}
+
+			return sizes;
 		}
 
 		void save(
@@ -201,7 +259,7 @@ class StateMarginals {
 				throw runtime_error( "Chunk size must be at least one!" );
 			}
 			if ( mCurrentindex != 0 ) {
-				throw runtime_error( "Cannot output incomplete marginals!" );
+				throw runtime_error( "Cannot output incomplete marginals, currently processing block " + to_string( mCurrentindex ) + "!" );
 			}
 
 			size_t i = 0;
@@ -238,6 +296,8 @@ class StateMarginals {
 };
 
 #endif
+
+
 
 
 

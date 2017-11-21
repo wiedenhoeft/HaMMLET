@@ -176,7 +176,7 @@ public:
 	void setVar(
 		real_t var ) {
 		if ( var <= 0 ) {
-			throw runtime_error( "Variance must be positive!" );
+			throw runtime_error( "Variance ("+to_string(var)+") must be positive!" );
 		}
 
 
@@ -373,16 +373,16 @@ public:
 	) {
 // 		cout<<alpha<<" "<<beta<<" "<<mu0<<" "<<nu<<endl;
 		if ( alpha <= 0 ) {
-			throw runtime_error( "Alpha must be positive!" );
+			throw runtime_error( "Alpha (" + to_string(alpha) + ") must be positive!" );
 		}
 		if ( beta <= 0 ) {
-			throw runtime_error( "Beta must be positive!" );
+			throw runtime_error( "Beta (" + to_string(beta) + ") must be positive!" );
 		}
 		if ( nu <= 0 ) {
-			throw runtime_error( "Nu must be positive!" );
+			throw runtime_error( "Nu (" + to_string(nu) + ")must be positive!" );
 		}
 		if ( !isfinite( mu0 ) ) {
-			throw runtime_error( "mu0 must be finite!" );
+			throw runtime_error( "Mu0 (" + to_string(mu0) + ")  must be finite!" );
 		}
 
 		mAlpha = alpha;
@@ -444,6 +444,12 @@ public:
 		return !( ( *this ) == other );
 	};
 
+	friend ostream& operator<<(
+		ostream& output,
+		const Observation< NormalInverseGammaParam >& D )  {
+		output << D.str();
+		return output;
+	}
 
 	size_t domainSize() const {
 		return 4;

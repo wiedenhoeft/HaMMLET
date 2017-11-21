@@ -9,6 +9,71 @@
 
 enum Direction {forward, backward, unset};
 
+// use Kahan (1965) to compute a stable cumulative sum of partial array
+//
+template <typename T, template<typename> class Container>
+void KahanCumulativeSum(
+    Container<T>& x,
+    const size_t left = 0,
+    size_t right = numeric_limits<size_t>::max(),
+    const size_t stepSize = 1,	// NOTE the direction of steps is determined by whether end is larger or smaller than start
+    bool reverse = false // whether to compute the sum from left to right rather than right to left. NOTE The affected indices are exactly the same in both cases!
+) {
+
+	if ( left >= x.size() ) {
+		throw runtime_error( "Start index for Kahan summation out of bounds!" );
+	}
+
+	if ( stepSize <= 0 ) {
+		throw runtime_error( "Increment for Kahan addition must be positive!" );
+	}
+
+	if ( left >= right ) {
+		throw runtime_error( "Start position in Kahan summation must be smaller than end position@" );
+	}
+	if ( right > x.size() ) {
+		right = x.size();
+	}
+
+	// compute first and last affected position
+
+	right--;	// end is exclusive
+	right -= left;	// temporary offset to get the rounding to multiples of step size
+	right = ( right / stepSize ) * stepSize;	// round down to step
+	right += left;	// shift back
+
+
+	T c( 0 );
+
+	if ( reverse ) {
+		// get the last affected position
+		T s = x[right];
+		for ( size_t i = right - stepSize;  i >= left; i -= stepSize ) {
+			T y = x[i] - c;
+			T temp = s + y;
+			c = ( temp - s ) - y;
+			s = temp;
+			x[i] = s; // TODO add error term here?
+
+			// avoid underflow of decrement
+			if ( i < stepSize ) {
+				break;
+			}
+		}
+	} else {
+		T s = x[left];
+		for ( size_t i = left + stepSize; i <= right; i += stepSize ) {
+			T y = x[i] - c;
+			T temp = s + y;
+			c = ( temp - s ) - y;
+			s = temp;
+			x[i] = s; // TODO add error term here?
+		}
+	}
+}
+
+
+
 
 // Return a reference to the lower median of a vector.
 template<typename T>

@@ -13,33 +13,33 @@
 #include "InitialHyperParam.hpp"
 #include "TransitionHyperParam.hpp"
 #include "StateMarginals.hpp"
-// #include "Options.hpp"
 #include "Records.hpp"
 
-template <
-typename StateSequenceType,
-         typename EmissionDataStructure,	// e.g. WaveletTree
-         typename EmissionDistType, // e.g. Normal
-         typename ThetaDistType,	// e.g. NormalInverseGammaVector
+template < typename StateSequenceType,
+         typename EmissionsType, // e.g. Normal
+         typename ThetaType,	// e.g. NormalInverseGammaVector
          typename ThetaParamType,	// e.g. NormalInverseGammaParamVector
-         typename TransitionDistType, // e.g. DirichletVector
+         typename TransitionType, // e.g. DirichletVector
          typename TransitionParamType,	// e.g. DirichletParamVector
-         typename InitialDistType,	// e.g. Dirichlet
-         typename InitialParamType 	// e.g. DirichletParam
+         typename InitialType,	// e.g. Dirichlet
+         typename InitialParamType
          >
 void sampleHMM(
-    Emissions<EmissionDataStructure, EmissionDistType>& y,
-    ThetaHyperParam<ThetaParamType>& tau_theta,
-    Theta<ThetaDistType>& theta,
-    TransitionHyperParam<TransitionParamType>& tau_A,
-    Transitions<TransitionDistType>& A,
-    InitialHyperParam<InitialParamType>& tau_pi,
-    Initial<InitialDistType>& pi,
-    StateSequence<StateSequenceType>& q,
+    EmissionsType& y,
+    ThetaParamType& tau_theta,
+    ThetaType& theta,
+    TransitionParamType& tau_A,
+    TransitionType& A,
+    InitialParamType& tau_pi,
+    InitialType& pi,
+    StateSequenceType& q,
+    const bool dynamic = true,
     const bool useSelfTransitions = true
 ) {
 
-	y.createBlocks( theta );
+	if ( dynamic ) {
+		y.createBlocks( theta );
+	}
 	q.sample( y, theta, A, pi, useSelfTransitions );
 	theta.sample( q, y, tau_theta );
 	pi.sample( q, A, y, tau_pi );
@@ -51,31 +51,31 @@ void sampleHMM(
 
 
 
-template <
-typename StateSequenceType,
-         typename EmissionDataStructure,	// e.g. WaveletTree
-         typename EmissionDistType, // e.g. Normal
-         typename ThetaDistType,	// e.g. NormalInverseGammaVector
+
+template < typename StateSequenceType,
+         typename EmissionsType, // e.g. Normal
+         typename ThetaType,	// e.g. NormalInverseGammaVector
          typename ThetaParamType,	// e.g. NormalInverseGammaParamVector
-         typename TransitionDistType, // e.g. DirichletVector
+         typename TransitionType, // e.g. DirichletVector
          typename TransitionParamType,	// e.g. DirichletParamVector
-         typename InitialDistType,	// e.g. Dirichlet
-         typename InitialParamType 	// e.g. DirichletParam
+         typename InitialType,	// e.g. Dirichlet
+         typename InitialParamType
          >
 void sampleHMM(
-    Emissions<EmissionDataStructure, EmissionDistType>& y,
-    ThetaHyperParam<ThetaParamType>& tau_theta,
-    Theta<ThetaDistType>& theta,
-    TransitionHyperParam<TransitionParamType>& tau_A,
-    Transitions<TransitionDistType>& A,
-    InitialHyperParam<InitialParamType>& tau_pi,
-    Initial<InitialDistType>& pi,
-    StateSequence<StateSequenceType>& q,
+    EmissionsType& y,
+    ThetaParamType& tau_theta,
+    ThetaType& theta,
+    TransitionParamType& tau_A,
+    TransitionType& A,
+    InitialParamType& tau_pi,
+    InitialType& pi,
+    StateSequenceType& q,
     const Mapping& mapping,
     // insert records for parameters etc.
     const size_t iterations,
     const size_t thinning,
     Records& records,
+    const bool dynamic = true,
     bool samplePrior = true,
     const bool useSelfTransitions = true
                                     // TODO RNG
@@ -105,7 +105,7 @@ void sampleHMM(
 	}
 
 	for ( auto i = 0; i <  iterations; ++i ) {
-		sampleHMM( y, tau_theta, theta, tau_A, A, tau_pi, pi, q, useSelfTransitions );
+		sampleHMM( y, tau_theta, theta, tau_A, A, tau_pi, pi, q, dynamic, useSelfTransitions );
 
 		if ( thinning > 0 ) {
 			if ( ( i + 1 ) % thinning == 0 ) {
@@ -113,6 +113,9 @@ void sampleHMM(
 			}
 		}
 	}
+
+
+
 }
 
 

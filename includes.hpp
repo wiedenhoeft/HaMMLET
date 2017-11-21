@@ -24,7 +24,11 @@ using std::size_t;
 #include <vector>
 using std::vector;
 
+#include <queue>
+using std::queue;
 
+#include <deque>
+using std::deque;
 
 #include <array>
 using std::array;

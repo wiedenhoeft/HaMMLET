@@ -7,6 +7,8 @@
 #include "ThetaHyperParam.hpp"
 #include "Mapping.hpp"
 #include "EFD.hpp"
+#include "SufficientStatistics.hpp"
+#include "KahanAggregator.hpp"
 
 template <typename ParamType>
 class Theta {
@@ -121,35 +123,18 @@ class Theta {
 		}
 
 
-		template<typename StateSequenceType, typename EmissionsDataStructure, typename ObsType, typename ThetaParamType>
+		template<typename StateSequenceType, typename EmissionsType,  typename ThetaParamType>
 		void sample(
-		    const StateSequence<StateSequenceType>& q,
-		    Emissions<EmissionsDataStructure, ObsType>& y,	// TODO the data structure shouldn't matter, encapsulate this somehow
+		    const StateSequenceType& q,
+		    EmissionsType& y,	// TODO the data structure shouldn't matter, encapsulate this somehow
 		    // TODO cannot be const due to next()
-		    ThetaHyperParam<ThetaParamType>& tau_theta,
+		    ThetaParamType& tau_theta,
 		    size_t ignoreBlockSize = 0	//blocks of size <= ignoreBlockSize are not considered in the posterior, in order to handle noise TODO implement, with transitions as well
 		) {
-			// TODO we do this multiple times...
 
-			size_t t = 0;
-			y.initForward();
-			size_t n = 0;
-			size_t compensation = 0;	// count how many blocks we ignored, to make sure the final size assertion holds
-			while ( y.next() ) {
-
-				if ( y.N() > ignoreBlockSize ) {
-					for ( auto d = 0; d < mNrDataDim; ++d ) {
-						tau_theta.addObservation( y.suffStat( d ), y.N(), mMapping[q[t]][d] );
-					}
-					n += y.N();
-				} else {
-					compensation++;
-				}
-				t++;
-			}
-			if ( n != y.T() - ignoreBlockSize * compensation ) {
-				throw runtime_error( "Cannot sample emission parameters, total block size does not match number of input positions!" );
-			}
+			// aggregate the statistics of observations for each hyperparameter dimension
+			// NOTE this is done within y, since the direct access of y to its members means that this aggregation can be done faster and/or more numerically stable
+			y.aggregateStatistics( q,  tau_theta, mMapping, ignoreBlockSize );
 
 			sample( tau_theta );
 			tau_theta.reset();

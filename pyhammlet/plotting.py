@@ -10,49 +10,10 @@ import matplotlib
 matplotlib.use('Agg')
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap, BoundaryNorm
 from matplotlib.ticker import MaxNLocator 
 import os
 from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes, inset_axes
-
-defaultColors = [
-	"#a6cee3", 
-	"#1f78b4", 
-	"#fb9a99", 
-	"#e31a1c", 
-	"#b2df8a", 
-	"#33a02c", 
-	"#fdbf6f", 
-	"#ff7f00", 
-	"#cab2d6", 
-	"#ffed6f", 
-	'#ccebc5', 
-	'#bc80bd', 
-	'#d9d9d9', 
-	'#fccde5', 
-	'#b3de69', 
-	'#fdb462', 
-	'#80b1d3', 
-	'#fb8072', 
-	'#bebada', 
-	'#ffffb3', 
-	'#8dd3c7']
-
-# create a ListedColormap with norm from a palette and a number of classes
-def getListedColormap(nrClasses):
-	nrClasses = int(nrClasses)
-	colormap = defaultColors
-	if nrClasses>len(defaultColors):
-		try:
-			import seaborn.apionly as sns
-			colormap += sns.husl_palette(nrClasses)
-		except:
-			print("Seaborn must be installed to plot more than %d colors!" % len(defaultColors))
-	assert len(colormap)>= nrClasses, "Not enough colors for %d classes!" % nrClasses
-	cmap = ListedColormap(colormap, name="HaMMLET")
-	norm = BoundaryNorm(range(0, nrClasses)+ [nrClasses-1], cmap.N)
-	return cmap, norm
-
+from matplotlib.colors import ListedColormap, BoundaryNorm, LogNorm, Colormap
 
 
 
@@ -62,9 +23,8 @@ def getListedColormap(nrClasses):
 
 
 # like plt.imshow, but scaled down to a defined number of pixels 
-def scaledImshow(matrix, maxNrPixels = 100000000, intType="uint16", *args, **kwargs):
+def scaledImshow(matrix, cmap, norm,  maxNrPixels = 100000000, intType="uint16", *args, **kwargs):
 	ax = plt.gca()
-	matrix=np.asarray(matrix)
 	height, width = matrix.shape
 	nrPixels = height*width
 	if nrPixels > maxNrPixels:
@@ -74,9 +34,11 @@ def scaledImshow(matrix, maxNrPixels = 100000000, intType="uint16", *args, **kwa
 			print("[ERROR] You must have SciPy installed to plot huge data!")
 		scalingFactor = np.sqrt(maxNrPixels/nrPixels)		
 		mat = zoom(matrix, scalingFactor, mode="nearest")
-		ax.imshow(mat,   *args, **kwargs)
+		assert mat.ndim==2
+		ax.imshow(mat, cmap, norm,  *args, **kwargs)
 	else:
-		ax.imshow(matrix, *args, **kwargs)
+		assert matrix.ndim==2
+		ax.imshow(matrix, cmap, norm, *args, **kwargs)
 	return ax
 
 
@@ -141,8 +103,7 @@ def plotMatrix(
 	if normalize:
 		ymax=1
 	ext = [xmin, xmin+xmax*xstretch, 0, ymax]	# TODO include xstretch in xmin?
-	scaledImshow(m, extent = ext, aspect="auto", origin="lower", interpolation="none", *args, **kwargs)
-	plt.sca(ax)
+	scaledImshow(m, extent = ext, aspect="auto", origin="lower", interpolation="none",  *args, **kwargs)
 	return ax
 
 
@@ -221,7 +182,7 @@ def matrixQuantilePlot(
 		axins.xaxis.tick_top()
 		axins.set_xticks(insetXticks)
 		axins.set_yticks(insetYticks)
-	plt.sca(ax) 
+	#plt.sca(ax) 
 
 
 
@@ -239,17 +200,29 @@ def plotData(
 	marker=".",
 	linewidth=0,
 	alpha=0.8,
+	ylabel=None,
+	cmap=None,
+	norm=None,
 	*args,
 	**kwargs): 
 	
+	ax = plt.gca()
+	
+	if states is not None:
+		assert cmap is not None, "Require colormap to plot data if a state sequence is provided!"
+		assert norm is not None, "Require color normalization to plot data if a state sequence is provided!"
+			
 	#TODO chunksize
 	#TODO multivariate
 	if end is None:
 		end = start+len(data)
-	if states is not None:
+	if states is None:
+		states="k"
+	else:
 		states = states[start:end]
-	ax = plt.gca()
-	ax.scatter(range(start, end), data[start:end], c=states,  marker=marker, linewidth=linewidth, alpha=alpha, *args, **kwargs)
+
+	ax.scatter(range(start, end), data[start:end], c=states,  marker=marker, linewidth=linewidth, alpha=alpha, cmap=cmap, norm=norm, *args)
+	ax.set_ylabel(ylabel)
 	ax.set_xlim([start, end])
 	return ax
 
@@ -260,14 +233,22 @@ def plotBlockSizes(
 	compressedBlocks, 
 	start=0, 
 	end=None,  
-	chunkSize=1):
+	chunkSize=1, 
+	*args,
+	**kwargs):
 	ax = plt.gca()
-	return plotMatrix(compressedBlocks[start:end].decompress().T, cmap="Greys_r", ylabel="Iteration", xstretch=chunkSize, xmin=start)	# cmap="Blues", Spectral"
+	M=compressedBlocks[start:end].decompress().T
+	# TODO more customizable way to plot boundaries (or not!)
+	M[M==1] = 0
+	plotMatrix(M,  xmin=start, xstretch=chunkSize,  *args, **kwargs)	# cmap="Blues", Spectral"
+	return ax
 	
 
 # takes compressed marginal counts, extracts the [start:end] slice, expands the counts to a full matrix of iterations and plots it
 def plotMarginals(
 	compressedMarginalCounts, 
+	cmap,
+	norm,
 	start=0, 
 	end=None, 
 	chunkSize=1, 
@@ -282,26 +263,31 @@ def plotMarginals(
 	marginals = np.zeros((nrSegments, iterations), dtype=int)
 	for i in xrange(nrSegments):
 		marginals[i,:] = np.repeat(np.array(range(nrStates)), counts[i,:])
-	result = plotMatrix(marginals.T,  ylabel="Iteration", xstretch=chunkSize, xmin=start,  *args, **kwargs)
+	plotMatrix(marginals.T,  xstretch=chunkSize, xmin=start, cmap=cmap, norm=norm, *args, **kwargs)
 	del marginals
 	del counts
-	return result
+	return ax
 
 
 
 def plotSequences(
 	sequences, # a list of RLE vectors
+	cmap,
+	norm,
 	start=0, 
 	end=None, 
 	*args,
 	**kwargs
 	):
+	
+	ax = plt.gca()
 	if end is None:
 		end = sequences[0].size
 	matrix = np.zeros([len(sequences), end-start], dtype=int)
 	for i in xrange(len(sequences)):
 		matrix[i] = sequences[i][start:end].decompress()
-	plotMatrix(matrix,  ylabel="Iteration", xmin=start, normalize=False, *args, **kwargs)
-	
+	#TODO vmin, vmax
+	plotMatrix(matrix,  ylabel="Iteration", xmin=start, normalize=False, cmap=cmap, norm=norm, *args, **kwargs)
+	return ax
 	
 	

@@ -78,14 +78,14 @@ class SufficientStatistics<Normal> {
 		}
 
 		SufficientStatistics(
-		    real_t sum,
-		    real_t sumSq
+		    const real_t sum,
+		    const real_t sumSq
 		) {
 			mSum = sum;
 			mSumSq = sumSq;
 		}
 
-		inline void addObs( real_t x ) {
+		inline void addObs( const real_t x ) {
 			mSum += x;
 			mSumSq += x * x;
 		}
@@ -106,18 +106,21 @@ class SufficientStatistics<Normal> {
 
 		SufficientStatistics<Normal>&  operator+=(
 		    const SufficientStatistics<Normal>&  rhs )  {
-			mSum += rhs.mSum;
-			mSumSq += rhs.mSumSq;
+			mSum += rhs.sum();
+			mSumSq += rhs.sumSq();
+// 			if (mSumSq <0){
+// 				throw runtime_error( "Sum of squares is negative after addition  (" + to_string( mSumSq - rhs.sumSq() ) + "+" + to_string( rhs.sumSq() ) + "=" + to_string( mSumSq ) + "), possibly cause by overflow!");
+// 			}
 			return *this;
 		}
 
 		SufficientStatistics<Normal>&  operator-=(
 		    const SufficientStatistics<Normal>&  rhs )  {
-			mSum -= rhs.mSum;
-			mSumSq -= rhs.mSumSq;
-			if ( mSumSq < 0 ) {
-				throw runtime_error( "Sum of squares is negative after subtraction  (" + to_string( rhs.mSumSq + mSumSq ) + "-" + to_string( rhs.mSumSq ) + "=" + to_string( mSumSq ) + ")!" );	// TODO numerics?
-			}
+			mSum -= rhs.sum();
+			mSumSq -= rhs.sumSq();
+// 			if ( mSumSq < 0 ) {
+// 				throw runtime_error( "Sum of squares is negative after subtraction  (" + to_string( rhs.sumSq() + mSumSq ) + "-" + to_string( rhs.sumSq() ) + "=" + to_string( mSumSq ) + ")!" );	// TODO numerics?
+// 			}
 			return *this;
 		}
 
@@ -384,6 +387,7 @@ class SufficientStatistics<Geometric> {
 };
 
 #endif
+
 
 
 

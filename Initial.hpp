@@ -4,7 +4,7 @@
 
 #include "includes.hpp"
 #include "Tags.hpp"
-#include "Distribution.hpp"	
+#include "Distribution.hpp"
 #include "InitialHyperParam.hpp"
 #include "StateSequence.hpp"
 #include "Transitions.hpp"
@@ -37,18 +37,18 @@ class Initial {
 			mDist.resample( mValue,  tau_pi.posterior() );
 		}
 
-		template<typename StateSequenceType, typename TransitionsType, typename EmissionDataStructure, typename EmissionType, typename InitialHyperParamType>
+		template<typename StateSequenceType, typename TransitionsType, typename EmissionsType, typename InitialHyperParamType>
 		void sample(
-		    const StateSequence<StateSequenceType>& q,
-		    const Transitions<TransitionsType>& A,
-		    Emissions<EmissionDataStructure, EmissionType>& y,	// NOTE pi does not statistically depend on y; y is only passed because it contains the block sizes which we need for self-transitions
-		    InitialHyperParam<InitialHyperParamType>& tau_pi, // NOTE tau_pi cannot be constant since we update the parameters
+		    const StateSequenceType& q,
+		    const TransitionsType& A,
+		    EmissionsType& y,	// NOTE pi does not statistically depend on y; y is only passed because it contains the block sizes which we need for self-transitions
+		    InitialHyperParamType& tau_pi, // NOTE tau_pi cannot be constant since we update the parameters
 		    bool considerFullSequence = true	) {	//TODO there are two ways to integrate the observed state sequence: count only the first state, or the complete sequence to get the stable distribution (considerFullSequence=true for the latter)
 
 			mCounts.clear();
 
 // 		TODO replace this functionality somehow
-			if ( q.size() != y.size() ) {
+			if ( q.size() != y.nrBlocks() ) {
 				throw runtime_error( "Emissions and state sequence have different sizes!" );
 			}
 
@@ -63,7 +63,7 @@ class Initial {
 						throw runtime_error( "Emissions and state sequence have different sizes!" );
 					}
 
-					mCounts[q[t]] += y.N( );
+					mCounts[q[t]] += y.blockSize( );
 					++t;
 				}
 

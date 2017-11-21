@@ -16,7 +16,7 @@
 template <typename ParamType>
 class Conjugate {
 
-		// hyperparameters
+		// parameters
 		Observation<ParamType> mPrior;
 		Observation<ParamType> mPosterior;
 
@@ -117,16 +117,17 @@ class Conjugate {
 ////////// Normal-Inverse Gamma parameters //////////
 
 
-//TODO aggregate to avoid recomputation?
-template <typename NormalHyperParamType, typename NormalType>
-void NormalUpdates(
-    Observation<NormalHyperParamType>& hyperparam,
-    const SufficientStatistics< NormalType>& obs,
+template<> template<>
+void Conjugate<NormalInverseGammaParam>::addObservation(
+    const SufficientStatistics< Normal>& obs,
     const size_t counts ) {
 
+	const real_t sum = obs.sum();
+	const real_t sumSq = obs.sumSq();
 
-	real_t sum = obs.sum();
-	real_t sumSq = obs.sumSq();
+	if ( sumSq < 0 ) {
+		throw runtime_error( "Sum of squares is negative (" + to_string( sumSq ) + ")!" );
+	}
 
 	if ( counts == 0 ) {
 		if ( sumSq > 0 ) {
@@ -137,31 +138,32 @@ void NormalUpdates(
 		return;
 	}
 
-	real_t N = ( real_t )counts;
-	real_t xbar = sum / N;	// sample mean
+	const double N = ( double )counts;
+	const real_t xbar = sum / N;	// sample mean
 
 
-	real_t mu0 = hyperparam.mu0( );
-	real_t nu = hyperparam.nu( );
-	real_t alpha = hyperparam.alpha( );
-	real_t beta = hyperparam.beta( );
+	const real_t alpha = mPosterior.alpha( );
+	const real_t beta = mPosterior.beta( );
+	const real_t mu0 = mPosterior.mu0( );
+	const real_t nu = mPosterior.nu( );
 
 
 
-	hyperparam.setValue(
+	// NOTE sometimes (sum*sum)/N > sumSq, i.e. sample variance is negative. This is akin to the numerically unstable way to calculate the sample variance naively.
+	real_t ssN = ( sum * sum ) / N;
+	if ( ssN > sumSq ) {
+		ssN = sumSq;
+		cerr << "[WARNING] Encountered numerical instability in sample variance!" << endl;
+	}
+
+	// TODO better numerics, especially for beta?
+	mPosterior.setValue(
 	    alpha + N / 2.0,	// alpha	NOTE using 2 instead of 2.0 previously caused the strange "label-switching" bug in maxBlockLen=1
-	    beta + 0.5 * ( N * xbar * xbar + sumSq - 2 * xbar * sum ) + ( N * nu / ( N + nu ) ) * ( ( ( xbar - mu0 ) * ( xbar - mu0 ) ) / 2.0 ), 	// beta
-	    ( nu * mu0 + N * xbar ) / ( nu + N ), 	// mu0
-	    nu + counts	// nu	// TODO size_t?
+	    // NOTE This involves a term which makes the naive calculation of sample variance numerically unstable (sumSq-ssN); we subtract ssN last in hopes that the term added to sumSq is large enough to alleviate catastrophic cancellation.
+	    beta + ( ( sumSq   + ( N * nu / ( N + nu ) ) * ( ( xbar - mu0 ) * ( xbar - mu0 ) ) )  -  ssN ) / 2.0, 	// beta
+	    ( nu * mu0 + sum ) / ( nu + N ), 	// mu0
+	    nu + N	// nu	// TODO size_t?
 	);
-}
-
-
-template<> template<>
-void Conjugate<NormalInverseGammaParam>::addObservation(
-    const SufficientStatistics< Normal>& obs,
-    const size_t N ) {
-	NormalUpdates( mPosterior,  obs, N );
 }
 
 

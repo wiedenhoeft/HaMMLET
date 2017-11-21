@@ -4,8 +4,8 @@
 #include "includes.hpp"
 #include "Emissions.hpp"
 #include "Theta.hpp"
-#include "Transitions.hpp"	
-#include "Initial.hpp"	
+#include "Transitions.hpp"
+#include "Initial.hpp"
 // #include "StateMarginals.hpp"
 #include "Trellis.hpp"
 
@@ -28,12 +28,12 @@ class StateSequence {
 
 		StateSequence( rng_t& RNG ) : mTrellis( RNG ), mRNG( RNG ) {};
 
-		template<typename EmissionsDataStructure, typename EmissionsType, typename TransitionsType, typename ThetaType, typename InitialType>
+		template<typename EmissionsType, typename ThetaType, typename TransitionsType, typename InitialType>
 		void sample(
-		    Emissions< EmissionsDataStructure, EmissionsType >& Y,	// TODO cannot be const due to next()
-		    const Theta< ThetaType >& theta,
-		    const Transitions< TransitionsType >& A,
-		    const Initial< InitialType >& pi,
+		    EmissionsType& Y,	// TODO cannot be const due to next()
+		    const ThetaType& theta,
+		    const TransitionsType& A,
+		    const InitialType& pi,
 		    const bool useSelfTransitions = true
 		);
 
@@ -48,7 +48,7 @@ class StateSequence {
 		const marginal_t& operator[](
 		    const size_t s	) const  {
 			if ( s >= mStates.size() ) {
-				throw runtime_error( "State sequence index "+to_string(s)+" out of bounds!" );
+				throw runtime_error( "State sequence index " + to_string( s ) + " out of bounds!" );
 			}
 			return mStates[s];
 		}
@@ -56,7 +56,7 @@ class StateSequence {
 		marginal_t operator[](
 		    const size_t s	) {
 			if ( s >= mStates.size() ) {
-				throw runtime_error( "State sequence index "+to_string(s)+" out of bounds!" );
+				throw runtime_error( "State sequence index " + to_string( s ) + " out of bounds!" );
 			}
 			return mStates[s];
 		}
@@ -69,6 +69,12 @@ class StateSequence {
 			return s;
 		};
 
+		void clear() {
+			deleteVector( mStates );
+			deleteVector( mPrevStateSequence );
+			mTrellis.clear();
+		}
+
 };
 
 
@@ -78,9 +84,9 @@ class StateSequence {
 ////////////////////////////////////////////////// TEMPLATE SPECIALIZATIONS //////////////////////////////////////////////////
 
 
-#include "StateSequenceForwardBackward.hpp"
-#include "StateSequenceMixture.hpp"
-// #include "StateSequenceDirectGibbs.hpp"	
+#include "StateSequence/ForwardBackward.hpp"
+#include "StateSequence/Mixture.hpp"
+// #include "StateSequence/DirectGibbs.hpp"
 
 
 

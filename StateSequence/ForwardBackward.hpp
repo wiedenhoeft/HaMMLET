@@ -1,15 +1,15 @@
 #ifndef STATESEQUENCEFORWARDBACKWARD_HPP
 #define STATESEQUENCEFORWARDBACKWARD_HPP
 
-#include "StateSequence.hpp"
+// #include "StateSequence.hpp"
 
 
-template<> template<typename EmissionsDataStructure, typename EmissionsType, typename TransitionsType, typename ThetaType, typename InitialType>
+template<> template<typename EmissionsType,  typename ThetaType, typename TransitionsType, typename InitialType>
 void StateSequence<ForwardBackward>::sample(
-    Emissions<EmissionsDataStructure, EmissionsType>& Y,	// TODO this cannot be const due to the use of next(), work around that somehow
-    const Theta<ThetaType>& theta,
-    const Transitions<TransitionsType>& A,
-    const Initial<InitialType>& pi,
+    EmissionsType& y,	// TODO this cannot be const due to the use of next(), work around that somehow
+    const ThetaType& theta,
+    const TransitionsType& A,
+    const InitialType& pi,
     const bool useSelfTransitions
 ) {
 
@@ -47,17 +47,17 @@ void StateSequence<ForwardBackward>::sample(
 	real_t prevN = 1;
 
 	// forward variables
-	Y.initForward();
+	y.initForward();
 	vector<real_t> forward( nrStates, 0 );
-	while ( Y.next() ) {
+	while ( y.next() ) {
 		++t;
 		real_t maxE = numeric_limits<real_t>::lowest();
 
 
-		real_t N = Y.N();	// typecasting to avoid integer division TODO maxBlockSize should be restricted by range of real_t (data_t)
+		real_t N = y.blockSize();	// typecasting to avoid integer division TODO maxBlockSize should be restricted by range of real_t (data_t)
 
 		for ( auto s = 0; s < nrStates; ++s ) {
-			auto E = innerProduct( Y, theta.value(), theta.mapping( s ) )  - N * logNormalizers[s];	// TODO carrier measure for the general EFD case
+			auto E = innerProduct( y, theta.value(), theta.mapping( s ) )  - N * logNormalizers[s];	// TODO carrier measure for the general EFD case
 			if ( useSelfTransitions ) {
 				E += ( N - 1 ) * logA[s];	// include self-transitions
 			}
@@ -145,6 +145,7 @@ void StateSequence<ForwardBackward>::sample(
 
 	}
 
+	mTrellis.clear();
 }
 
 

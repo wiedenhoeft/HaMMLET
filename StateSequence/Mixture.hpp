@@ -1,24 +1,27 @@
 #ifndef STATESEQUENCEMIXTURE_HPP
 #define STATESEQUENCEMIXTURE_HPP
 
-#include "Tags.hpp"
-#include "StateSequence.hpp"
-#include "Emissions.hpp"
-#include "Theta.hpp"
-#include "Transitions.hpp"
-#include "Initial.hpp"
+#include "../Tags.hpp"
+// #include "StateSequence.hpp"
+#include "../Emissions.hpp"
+#include "../Theta.hpp"
+#include "../Transitions.hpp"
+#include "../Initial.hpp"
 
 #include <vector>
 using std::vector;
 
 
+// TODO if nothing is to be recorded, storing the entire sequence is wasteful, since the posterior can be updated directly for each block
 
-template<> template<typename EmissionsDataStructure, typename EmissionsType, typename TransitionsType, typename ThetaType, typename InitialType>
+
+
+template<> template<typename EmissionsType,  typename ThetaType, typename TransitionsType, typename InitialType>
 void StateSequence<Mixture>::sample(
-    Emissions<EmissionsDataStructure, EmissionsType>& Y,	// TODO this cannot be const due to the use of next(), work around that somehow
-    const Theta<ThetaType>& theta,
-    const Transitions<TransitionsType>& A,
-    const Initial<InitialType>& pi,
+    EmissionsType& y,	// TODO this cannot be const due to the use of next(), work around that somehow
+    const ThetaType& theta,
+    const TransitionsType& A,
+    const InitialType& pi,
     const bool useSelfTransitions	// NOTE this has no effect
 ) {
 	size_t nrStates = A.nrStates();
@@ -42,15 +45,15 @@ void StateSequence<Mixture>::sample(
 
 
 	// forward variables
-	Y.initForward();
-	while ( Y.next() ) {
+	y.initForward();
+	while ( y.next() ) {
 		real_t maxE = numeric_limits<real_t>::lowest();
 
-		real_t N = Y.N();	// typecasting to avoid integer division TODO maxBlockSize should be restricted by range of real_t (data_t)
+		real_t N = y.blockSize();	// typecasting to avoid integer division TODO maxBlockSize should be restricted by range of real_t (data_t)
 
 		// TODO assertions like in StateSequenceDirectGibbs
 		for ( auto s = 0; s < nrStates; ++s ) {
-			auto E = innerProduct( Y, theta.value(), theta.mapping( s ) )  - N * logNormalizers[s];	// TODO carrier measure for the general EFD case
+			auto E = innerProduct( y, theta.value(), theta.mapping( s ) )  - N * logNormalizers[s];	// TODO carrier measure for the general EFD case
 			weights[s] = E ;
 			maxE = max( E, maxE );
 		}

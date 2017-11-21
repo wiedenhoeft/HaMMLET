@@ -74,7 +74,7 @@ inline T rounddiv( T a, T b ) {
 }
 
 
-////////// bit twiddling, mostly for navigation in the bintree //////////
+
 
 
 // integer 2**x for non-negative x
@@ -90,6 +90,7 @@ inline size_t iexp2( size_t x ) {
 
 
 // round up to the next multiple of m
+// integer version of ceil(n/m)*m
 inline size_t ceilMult( size_t n, size_t m ) {
 	size_t res = n % m;
 	if ( res == 0 ) {
@@ -99,6 +100,11 @@ inline size_t ceilMult( size_t n, size_t m ) {
 	}
 }
 
+// round down to the next multiple of m
+// integer version of floor(n/m)*m
+inline size_t floorMult( size_t n, size_t m ) {
+	return (n/m)*m;
+}
 
 
 

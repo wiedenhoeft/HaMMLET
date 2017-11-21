@@ -10,8 +10,8 @@
 // In-place Haar transform, for arbitrary data sizes. Data is sorted by (position, dimension), and dimensions are processed in pseudo-parallel fashion. TODO acually make this parallel?
 // Data is treated like a greedy concatenation of vectors of sizes that are powers of two. In place where there would be the scale coefficient, the result is infinity.
 void HaarDetailCoeffs(
-	vector<real_t>& y,
-	size_t dim = 1 ) {
+    vector<real_t>& y,
+    size_t dim = 1 ) {
 
 
 	const size_t Tdim = y.size();	// T*dim
@@ -66,7 +66,7 @@ void HaarDetailCoeffs(
 
 // Takes a maxlet transform, and computes the breakpoint weights, i.e. for each position t it computes the maximum absolute coefficient of all wavelets which have a discontinuity at t. Complexity is in-place in linear time.
 void HaarBreakpointWeights(
-	vector< real_t >& weights	// absolute Haar wavelet coefficients
+    vector< real_t >& weights	// absolute Haar wavelet coefficients
 ) {
 	const size_t size = weights.size();
 	if ( size <= 0 ) {
@@ -96,11 +96,11 @@ void HaarBreakpointWeights(
 // Computes the maxlet transform (absolute Haar wavelet transform  for each dimension, then maximum of corresponding values across dimensions) from streaming input (dimensions first, then position), using only space T for coefficients and nrDim*T for statistics, plus nrDim*log2(T) for a stack. Output: coeffs.size()=T, suffstats.size() = nrDim*T
 template< typename T>
 void MaxletTransform(
-	istream& input,
-	vector<real_t>& coeffs,
-	vector< SufficientStatistics<T> >& suffstats,
-	const size_t nrDim = 1,
-	const size_t reserveT=0	// an estimate of the number of data points to avoid reallocation
+    istream& input,
+    vector<real_t>& coeffs,
+    vector< SufficientStatistics<T> >& suffstats,
+    const size_t nrDim = 1,
+    const size_t reserveT = 0	// an estimate of the number of data points to avoid reallocation
 ) {
 
 	if ( nrDim <= 0 ) {
@@ -116,8 +116,9 @@ void MaxletTransform(
 		throw runtime_error( "Statistics array must be empty!" );
 	}
 
-	coeffs.reserve( reserveT );
-	suffstats.reserve( nrDim * reserveT );
+
+	coeffs.reserve( ( reserveT + nrDim ) / nrDim + nrDim );
+	suffstats.reserve( reserveT + nrDim );
 
 // 	stack<real_t, vector<real_t> > S;	// stack never gets larger than nrDim*log2(T), so we don't expect a lot of reallocation, and save a lot of push and pop operations due to random access
 	vector<real_t> S;
@@ -128,7 +129,6 @@ void MaxletTransform(
 	while ( input >> v ) {
 		S.push_back( v );
 		suffstats.push_back( SufficientStatistics<T>( v ) );
-
 		dim++;	// set dimension of next value
 		if ( dim == nrDim ) {	// filled all dimensions at index i
 			dim = 0;	// next value will be first dimension again
@@ -151,13 +151,13 @@ void MaxletTransform(
 
 				// compute maximum of detail coefficients across dimensions
 				for ( size_t d = 0; d < nrDim; ++d ) {
-					maxCoeff = max( maxCoeff, normalizer*abs( S[L] - S[R] ) );
+					maxCoeff = max( maxCoeff, normalizer * abs( S[L] - S[R] ) );
 					S[L] += S[R];	// add right values to left values, so only the right values need to be popped
 					L++;		// go to next dimension
 					R++;
 				}
 				coeffs[j] = maxCoeff;
-				
+
 
 				// pop the right values
 				for ( size_t d = 0; d < nrDim; ++d ) {
@@ -178,7 +178,7 @@ void MaxletTransform(
 		throw runtime_error( "Input stream did not contain enough values to fill all dimensions at last position!" );
 	}
 
-	coeffs[0]=inf;
+	coeffs[0] = inf;
 }
 
 

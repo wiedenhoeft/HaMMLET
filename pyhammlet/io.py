@@ -39,46 +39,76 @@ def readCompressedStateSequences(seqFileName):
 def readBlockSizes(filename):
 	# read block sizes from file and create a compressed matrix in which each position corresponds to  (log of) the size of the block the value at this position is contained in. This yields a plot of the local compression.
 	
-	lines = [np.array(line.split(), int).cumsum() for line in file(filename).readlines()]
-	for i in xrange(len(lines)-1):
-		assert lines[i][-1] == lines[i+1][-1], "Block structure in input line %d does not match the previous ones in total size!" % (i+2)
+		
+	# get end positions for each line
+	
+	# split a block of size N into two blocks [1, N-1], to mimick a block boundary while plotting
+	def processLine(line):
+		line = np.array(line.split(), dtype=int)
+		l = len(line)-1
+		newSize = 2*len(line)-line[line==1].sum()
+		r = newSize-1
+		line=np.resize(line, newSize)
+		while l >= 0:
+			if line[l] == 1:
+				line[r] = 1
+			else:
+				line[r] = line[l]-1
+				r -= 1
+				line[r] = 1
+			l -= 1
+			r -= 1
+		return line		
+	
+	lines = [processLine(line).cumsum() for line in file(filename).readlines()]
+	T = lines[0][-1]
+	for i in xrange(1, len(lines)):
+		assert lines[i][-1] == T, "Block structure in input line %d does not match the previous ones in total size!" % (i+2)
 	iterations = len(lines)
 	
 	# get all endpoints across all iterations
 	ends = set()
 	ends.update(*[set(L) for L in lines])
 	ends = np.array(sorted(ends), dtype=int)
-		
+	
 	# change end points to match size indices for run-length encoding
+	# line[i] counts how many subblocks are covered at the end of the i-th block in line
 	for line in lines:
 		e = 0
 		for i in xrange(len(line)):
-			while line[i] != ends[e]:
+			while line[i] > ends[e]:
 				e += 1
 			e += 1
 			line[i] = e
 	for i in xrange(len(lines)-1):
 		assert lines[i][-1] == lines[i+1][-1]
 		
+	data = np.zeros((len(ends), iterations), dtype=int)
 	# determine block labels
-	blockedLabels = dict()	# position (start or end): set of forbidden labels
-	validLabels=dict()	# valid label for (start, end)-tuples
-	data = np.zeros((len(ends), iterations))
 	iteration=0
+	
+	# make ends contain the subblock sizes
 	ends = subdiff(ends)
-	prevLabel=0
+	
 	for line in lines:
+		t=0
 		for i in xrange(len(line)):
+			
 			if i==0:
 				start = 0
 				end = line[0]
 			else:
 				start = line[i-1]
 				end= line[i]
-			label = np.log(sum(ends[start:end]))
+				
+				
+			label = sum(ends[start:end])
 			data[start:end, iteration] = label
+			t += label
+			assert label>0
+		assert t==T, "The sum of block sizes does not match the total data size!"
 		iteration += 1
-	del blockedLabels
+		
 
 	return RunLengthArray(sizes=np.array(ends), array=data)
 

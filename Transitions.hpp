@@ -3,7 +3,7 @@
 
 #include "includes.hpp"
 #include "Tags.hpp"
-#include "TransitionHyperParam.hpp"	
+#include "TransitionHyperParam.hpp"
 #include "Distribution.hpp"
 #include "Observation.hpp"
 #include "StateSequence.hpp"
@@ -43,13 +43,13 @@ class Transitions {
 			mValue( nrStates ),
 			mCounts( nrStates ) {};
 
-		const real_t& operator()(
+		inline const real_t& operator()(
 		    const size_t from,
 		    const size_t to ) const {
 			return mValue( from, to );
 		};
 
-		real_t& operator()(
+		inline real_t& operator()(
 		    const size_t from,
 		    const size_t to ) {
 			return mValue( from, to );
@@ -77,20 +77,20 @@ class Transitions {
 			mDist.resample( mValue, tau_A.posterior() );
 		}
 
-		template<typename StateSequenceType, typename EmissionDataStructure, typename EmissionType, typename InitialType,  typename TransitionParamType>
+		template<typename StateSequenceType, typename EmissionType, typename InitialType,  typename TransitionParamType>
 		void sample(
-		    const StateSequence<StateSequenceType>& q,
-		    Emissions<EmissionDataStructure, EmissionType>& y,	// NOTE A does not stochastically depend on y; y is only passed because it contains the block sizes which we need for self-transitions
-		    const Initial<InitialType>& pi,
-		    TransitionHyperParam<TransitionParamType>& tau_A
+		    const StateSequenceType& q,
+		    EmissionType& y,	// NOTE A does not stochastically depend on y; y is only passed because it contains the block sizes which we need for self-transitions
+		    const InitialType& pi,
+		    TransitionParamType& tau_A
 // 		    , size_t ignoreBlockSize = 0	// ignore blocks <= ignoreBlockSize, to handle salt-and-pepper noise TODO implement this, efficiently, minimizing queries to next()
 		) {	// NOTE tau_A cannot be const since we update the parameters
 
 			// tau_A.addObservation( pi.value(), q[0] );
 
 
-			if ( q.size() != y.size() ) {
-				throw runtime_error( "Sizes of state sequence (" + to_string( q.size() ) + ") and emissions (" + to_string( y.size() ) + ") do not match!" );
+			if ( q.size() != y.nrBlocks() ) {
+				throw runtime_error( "Sizes of state sequence (" + to_string( q.size() ) + ") and emissions (" + to_string( y.nrBlocks() ) + ") do not match!" );
 			}
 
 			auto T = q.size();
@@ -106,7 +106,7 @@ class Transitions {
 			y.initForward();	// move to front
 			size_t t = 0;
 			while ( y.next() ) {
-				mCounts[ q[t] ][ q[t] ] += ( y.N( ) - 1 );
+				mCounts[ q[t] ][ q[t] ] += ( y.blockSize( ) - 1 );
 				t++;
 			}
 
@@ -131,12 +131,12 @@ void Transitions<Dummy>::sample(
     TransitionHyperParam<TransitionParamType>& tau_A ) {	// NOTE tau_A cannot be const since we update the parameters
 }
 
-template<> template< typename StateSequenceType, typename EmissionDataStructure, typename EmissionType, typename InitialType,  typename TransitionParamType>
+template<> template< typename StateSequenceType,  typename EmissionType, typename InitialType,  typename TransitionParamType>
 void Transitions<Dummy>::sample(
-    const StateSequence<StateSequenceType>& q,
-    Emissions<EmissionDataStructure, EmissionType>& y,	// NOTE A does not stochastically depend on y; y is only passed because it contains the block sizes which we need for self-transitions
-    const Initial<InitialType>& pi,
-    TransitionHyperParam<TransitionParamType>& tau_A ) {
+    const StateSequenceType& q,
+    EmissionType& y,	// NOTE A does not stochastically depend on y; y is only passed because it contains the block sizes which we need for self-transitions
+    const InitialType& pi,
+    TransitionParamType& tau_A ) {
 }
 
 

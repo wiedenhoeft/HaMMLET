@@ -4,35 +4,18 @@
 // #include "Options.hpp"
 #include "Parser.hpp"
 #include "Emissions.hpp"
+#include "Blocks.hpp"
 #include "AutoPriors.hpp"
 #include "Records.hpp"
 #include "wavelet.hpp"
-#include "StateSequenceForwardBackward.hpp"
-
+#include "StateSequence.hpp"
+#include "Statistics.hpp"
 #include "includes.hpp"
 
 #include "utils.hpp"
 
 
-
-
-template<typename T>
-void inputToStats(
-    const vector<real_t>& input,
-    vector<SufficientStatistics<T>>& stats
-) {
-	stats.reserve( input.size() );
-	for ( const auto & w : input ) {
-		stats.push_back( SufficientStatistics< Normal >( w ) );
-	}
-}
-
-
-
-
-
-
-
+// TODO generalize static sampling by setting minimum and maximum threshold to aavoid huge trellis as well as bias through overcompression?
 
 
 int main( int argc, const char* argv[] ) {
@@ -68,7 +51,7 @@ int main( int argc, const char* argv[] ) {
 
 		// SAMPLING SCHEME
 		args.registerFlags( {"-R", "-random-seed"}, to_string( time( 0 ) ) );
-		args.registerFlags( {"-i", "-iterations"}, "M 100 0 F 250 10" );
+		args.registerFlags( {"-i", "-iterations"}, "M 500 0 P S 150 0 S 250 1" );
 
 
 		// COMPRESSION
@@ -147,10 +130,10 @@ int main( int argc, const char* argv[] ) {
 
 		// TODO accept full vector as well
 		// default values of 0.5 correspond to Jeffreys prior
-		const real_t selfTrans = args.parse<real_t> ( "-t", 0 );
+		const real_t selfTrans = args.parse<real_t> ( "-t", 1 );
 		real_t t = selfTrans;
 		if ( args.nrTokens( "-t" ) > 1 ) {
-			t = args.parse<real_t> ( "-t", 1 );
+			t = args.parse<real_t> ( "-t", 0 );
 		}
 		const real_t trans = t;
 
@@ -252,7 +235,7 @@ int main( int argc, const char* argv[] ) {
 
 
 		// output state mappings to file if required
-		if (outputArgs.isSet("D")){
+		if ( outputArgs.isSet( "D" ) ) {
 			//TODO
 		}
 
@@ -270,20 +253,33 @@ int main( int argc, const char* argv[] ) {
 			// TODO right now, individual files are concatenated. We should also allow multiple files to contain multiple dimensions.
 			if ( args.isSet( "-f" ) ) { // read from input files
 				for ( string fname : args.parseVector<string>( "-f" ) ) {	// iterate over input file names
+					if ( verbose ) {
+						cout << "Reading " + fname + "..." << endl << flush;
+					}
 					ifstream fin( fname );
+
 					if ( fin ) {
 						// TODO this can still lead to reallocation, fix later
 						// TODO MaxletTransform does not work for multiple files in its current state
-						MaxletTransform( fin, inputValues, stats, nrDataDim, inputValues.size() + nrLinesInFile( fin ) );
+						MaxletTransform( fin, inputValues, stats, nrDataDim, inputValues.size() + nrLinesInFile( fin ) + 1 );
+						// NOTE Reserving +1 is really important here! In the integral array, an element is appended to stats, and not reserving space for that element can lead to reallocations in the gigabyte range!
+
 					} else {
 						throw runtime_error( "Cannot read from input file " + fname + "!" );
 					}
 				}
 			} else {	// read from STDIN
+				if ( verbose ) {
+					cout << "Reading from standard input..." << endl << flush;
+				}
 				MaxletTransform( cin, inputValues, stats, nrDataDim );
 			}
 
 			const size_t T = inputValues.size();
+
+			if ( verbose ) {
+				cout << "Number of data points: " + to_string( T ) << endl << flush;
+			}
 
 			Records records( T, outputPrefix, outputSuffix, nrStates );
 			records.setRecordStateSequence( outputArgs.isSet( "sequences" ), overwrite );
@@ -294,19 +290,26 @@ int main( int argc, const char* argv[] ) {
 			records.setRecordSegments( outputArgs.isSet( "segments" ), overwrite );
 
 
+			// inputValues holds the maxlet transform, now transform it to breakpoint weights
+			if ( verbose ) {
+				cout << "Calculating Haar breakpoint weights..." << endl << flush;
+			}
+			HaarBreakpointWeights( inputValues );
+
+			// multiply weights
+			for ( auto & w : inputValues ) {
+				w *= weightMultiplier;
+			}
+
 			if ( dataStructure == "B" || dataStructure == "breakpointarray" ) {
 
+				typedef Statistics<IntegralArray, Normal> S;
+				typedef Blocks<BreakpointArray> B;
+				S ia( stats, nrDataDim );
+				B waveletBlocks( inputValues );
 
-				// transform input data to Haar breakpoint weights
-				HaarBreakpointWeights( inputValues );
+				Emissions<S, B> y( ia, waveletBlocks );
 
-				// multiply weights
-				for ( auto & w : inputValues ) {
-					w *= weightMultiplier;
-				}
-
-
-				Emissions<BreakpointArray, Normal> y( inputValues, stats );	// TODO nrDataDim: to pass or not to pass?
 
 
 				// TODO this version calculates the same autopriors for all dimensions, adapt for flexible mapping
@@ -327,30 +330,90 @@ int main( int argc, const char* argv[] ) {
 				);
 
 
-				// check that iterations are grouped in triples
-				if ( args.nrTokens( "-i" ) % 3 != 0 ) {
-					throw runtime_error( "Parameters for -i must be multiples of 3!" );
+
+
+				// TODO run a general check on the tokens to avoid running the sampler if there are parsing errors
+				size_t nrTokens = 0;
+				for ( auto c : args.tokens( "-i" ) ) {
+					if ( c != "P" ) {
+						nrTokens++;
+					}
 				}
+				// check that iterations are grouped in triples
+				if ( nrTokens % 3 != 0 ) {
+					throw runtime_error( "Parameters for -i, excluding \"P\", must be multiples of 3!" );
+				}
+				nrTokens = args.nrTokens( "-i" );
 
 
 				// get iteration types
-				for ( size_t i = 0; i < args.nrTokens( "-i" ); i += 3 ) {
+				bool samplePrior = true;
+				bool reuseBlocks = false;	// in a sequence of static smapling iterations, we want to reuse the previous block tructure, not resample it
+				string method;
+				size_t iterations, thinning;
+				for ( size_t i = 0; i < nrTokens; ) {
 					string method = args.parse<string> ( "-i", i );	// D=direct gibbs, M=mixture, F = forward-backward gibbs
-					size_t iterations = args.parse<size_t> ( "-i", i + 1 );
-					size_t thinning = args.parse<size_t> ( "-i", i + 2 );
-
-					if ( method == "F" ) {	// Forward-Backward sampling
-						StateSequence< ForwardBackward > q( RNG );
-						sampleHMM( y, tau_theta, theta, tau_A, A, tau_pi, pi, q, mapping, iterations, thinning, records, i == 0, useSelfTrans );
-					} else if ( method == "M" ) {	// Mixture sampling
-						StateSequence< Mixture > q( RNG );
-						sampleHMM( y, tau_theta, theta, tau_A, A, tau_pi, pi, q, mapping, iterations, thinning, records, i == 0, useSelfTrans );
-// 					} else if ( method == "D" ) {	// Direct Gibbs sampling
-// 						StateSequence< DirectGibbs > q( RNG );
-// 						sampleHMM( y, tau_theta, theta, tau_A, A, tau_pi, pi, q, mapping, iterations, thinning, records, i == 0, useSelfTrans );
+					if ( method == "P" ) {
+						samplePrior = true;
+						i ++;
+						continue;
 					} else {
-						throw runtime_error( "Unknown sampling type " + method + "!" );
+						if ( i + 2 >= nrTokens ) {
+							throw runtime_error( "Incomplete command line for -i!" );
+						}
+						iterations = args.parse<size_t> ( "-i", i + 1 );
+						thinning = args.parse<size_t> ( "-i", i + 2 );
+						i += 3;
 					}
+
+					if ( verbose && samplePrior ) {
+						cout << "Sampling prior..." << endl << flush;
+					}
+
+					if ( method == "S" ) {
+						// sample static FBG. If thinning is 0, the priors are sampled and a burnin is performed so as to not use the previous parameters from mixture, for example.
+
+						// create blocks from the last sampling
+						if ( !reuseBlocks ) {
+							cout << "Setting static block structure..." << endl << flush;
+							y.createBlocks( theta );
+							reuseBlocks = true;
+						}
+						
+						if ( verbose ) {
+							cout << "Sampling static Forward-Backward..." << endl << flush;
+						}
+						StateSequence< ForwardBackward > q( RNG );
+						sampleHMM( y, tau_theta, theta, tau_A, A, tau_pi, pi, q, mapping, iterations, thinning, records, false, samplePrior, useSelfTrans );
+
+// 						StateSequence< ForwardBackward > q( RNG );
+
+					} else {
+						reuseBlocks = false;
+						if ( method == "F" ) {	// Forward-Backward sampling
+							if ( verbose ) {
+								// TODO more detailed output
+								cout << "Sampling Forward-Backward...";
+							}
+							StateSequence< ForwardBackward > q( RNG );
+							sampleHMM( y, tau_theta, theta, tau_A, A, tau_pi, pi, q, mapping, iterations, thinning, records, true, samplePrior, useSelfTrans );
+
+						} else if ( method == "M" ) {	// Mixture sampling
+							StateSequence< Mixture > q( RNG );
+							if ( verbose ) {
+								cout << "Sampling mixture..." << endl;
+							}
+							sampleHMM( y, tau_theta, theta, tau_A, A, tau_pi, pi, q, mapping, iterations, thinning, records, true, samplePrior,  useSelfTrans );
+
+							/*} else if ( method == "D" ) {	// Direct Gibbs sampling
+								StateSequence< DirectGibbs > q( RNG );
+								sampleHMM( y, tau_theta, theta, tau_A, A, tau_pi, pi, q, mapping, iterations, thinning, records, i == 0, useSelfTrans );*/
+
+						} else {
+							throw runtime_error( "Unknown sampling type " + method + "!" );
+						}
+					}
+					samplePrior = false;
 				}
 				// NOTE if marginals are to be saved, the output routine is automatically triggered by the destructor of records
 			}
@@ -365,7 +428,7 @@ int main( int argc, const char* argv[] ) {
 
 	} catch
 		( exception& e ) {
-		cerr << endl << "\e[97;41;1m [ERROR] " << e.what()  << " \e[0m" << endl << endl;
+		cerr << endl << flush << "\e[97;41;1m [ERROR] " << e.what()  << " \e[0m" << endl << endl << flush;
 
 		return 1;
 	}

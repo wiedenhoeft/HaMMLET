@@ -102,7 +102,7 @@ class RunLengthArray:
 
 	# Returns an RLE array of argmax
 	def argmax(self):
-		res = np.argmax(self.array, axis=1).astype(self.array.dtype)#.reshape(self.array.shape[0])
+		res = list(np.argmax(self.array, axis=1).astype(self.array.dtype))#.reshape(self.array.shape[0])
 		return RunLengthArray(sizes=subdiff(self.ends), array=res)
 
 

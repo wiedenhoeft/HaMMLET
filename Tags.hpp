@@ -56,9 +56,10 @@ class DirectGibbs {};	// sample direct Gibbs, i.e. including transitions into an
 ////////// tags for data structures //////////
 class Vector {}; // plain data structure for uncompressed sampling
 class WaveletTree {};
+class Fixed {};
+class IntegralArray {};
+class Splittable {};
 class BreakpointArray {};
-
-
 
 
 

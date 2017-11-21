@@ -140,12 +140,17 @@ Arguments may take the following forms [Default: **normal**. This means that **-
 :	An unsigned integer value to be used to seed the random number generator. If **-R** is not set, a seed is generated from the current epoch time. A seed should be set manually using **-R** whenever reproducibility is required.
 
 -i *SCHEME* ... | -iterations *SCHEME* ...
-:	A list of sampling *SCHEME*s, each of which consists of three tokens, *TYPE* *ITER* *THIN*:
+:	A list of sampling *SCHEME*s, each of which consists of three tokens, *TYPE* *ITER* *THIN*, except for P, which only has *TYPE*:
 
 	1. The *TYPE* of sampling method to be used is one of the following:
+		P
+		: Sample from priors. If the first token provided to -i is not P, an initial sampling of priors is still performed.
 		
 		F
 		: *Forward-Backward Gibbs sampling* uses a dynamic programming trellis to quickly sample state sequences unaffected by auto-correlation due to adjacent blocks. FBG is considered the state-of-the-art for Gibbs sampling in HMM. Running times depends quadratically on the number of states.
+		
+		S
+		: *Static Forward-Backward Gibbs sampling* uses the blocks based on the last sampling of parameters and keeps this structure fixed. This is useful in keeping the size of the trellis in check.
 		
 		M
 		: *Mixture sampling* treats compression as a way to impose equality relations on otherwise exchangeable data points. It completely ignores transition probabilities passed to the model, and instead assumes transitions to be implied in the block structure alone. This is much faster than the other methods, as it depends linearly on the number of states, but is not truly an HMM. High-variance components are prone to oversegmentation, and spurious differences in sampled values can lead to segments which come from the same true state being assigned to different states. However, if the variance is expected to be similar over all states, this variant can yield reasonably good results very fast.
