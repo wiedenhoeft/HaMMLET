@@ -14,62 +14,93 @@
 ###     along with HaMMLET.  If not, see <http://www.gnu.org/licenses/>.
 
 # $@ name of target
-# $< first dependence
+# $< first dependency
 # $+ all dependencies
 
-EXECUTABLE=hammlet
+
 
 COMPILER=g++
-CFLAGS=-c -Werror  --std=c++11   -fmax-errors=1 -Wreturn-type
-# -Wall -Wuninitialized
-SOURCES=main.cpp
-OBJECTS=$(SOURCES:%.cpp=%.o)
+CFLAGS=-Werror  --std=c++11   -fmax-errors=1 -Wreturn-type
+SRC=./src
+TLS=$(SRC)/tools
+BIN=./bin
+LIB=./lib
+DOC=./doc
+LOGO=./logo
+
+TOOLS=mapLinesToGenome combineCounts avg maxSegmentation
+TOOLSLIST=$(addprefix $(BIN)/, $(TOOLS))
 
 all: CFLAGS +=  -O3
-all: hammlet-manpage.hpp $(SOURCES) $(EXECUTABLE)  
+all: $(SRC)/hammlet-manpage.hpp tools hammlet
+	chmod ug+x $(BIN)/*
 
 debug: CFLAGS += -g
-debug:  hammlet-manpage.hpp $(SOURCES) $(EXECUTABLE) 
+debug:  $(SRC)/hammlet-manpage.hpp  tools hammlet
+	chmod ug+x $(BIN)/*
 
+hammlet: $(SRC)/hammlet-manpage.hpp
+	$(COMPILER) $(CFLAGS) $(SRC)/main.cpp  -o $(BIN)/hammlet
 
-%.o: %.cpp
-	$(COMPILER) $(CFLAGS) $< -o $@
+	
+tools: $(TOOLSLIST)
+	
 
+$(BIN)/%:  $(TLS)/%.cpp $(LIB)/gzstream/libgzstream.a
+	$(COMPILER) $(CFLAGS)  $< -I$(LIB)/gzstream -L$(LIB)/gzstream -lgzstream -lz -o $@ 
 
-$(EXECUTABLE): $(OBJECTS) 
-	$(COMPILER) $(OBJECTS) -o  $@
-
+	
+# make gzip stream library	
+$(LIB)/gzstream/libgzstream.a:
+	make -C $(LIB)/gzstream
+	
 clean: 
-	rm -rf *.o $(EXECUTABLE)
+	rm -vf $(BIN)/hammlet
+	rm -vf $(TOOLSLIST)
+	rm -vf $(BIN)/pyhammlet/*.pyc
+	rm -vf $(LIB)/gzstream/libgzstream.a
+	rm -vf $(LIB)/gzstream/gzstream.o
 
 
 	
 	
-	
-# Create manuals in different formats from doc/manpage.md. It also produces a header file to hard-code the manpage into the executable for platform-independence. 
-# This would typically not be called by the end-user, since it requires that the system has pandoc, xxd, pdflatex and man installed. It is provided here for convenience of the developer.
-man: manclean hammlet-manpage.hpp doc/hammlet.man doc/hammlet-manpage.txt
-	pandoc doc/hammlet-manpage.md -V lang=en -H doc/pandoc.css  -s -t html > doc/hammlet-manpage.html	
-	pandoc doc/hammlet-manpage.md -V lang=en -V papersize=a4 -H doc/man-preamble.tex -s -t latex  --variable classoption=landscape,twocolumn --variable geometry={margin=1in}  -o doc/hammlet-manpage-a4.pdf
-	pandoc doc/hammlet-manpage.md -V lang=en -V papersize=letter -H doc/man-preamble.tex -s -t latex  --variable classoption=landscape,twocolumn --variable geometry={margin=1in}  -o doc/hammlet-manpage-letter.pdf
+# Create manuals in different formats from $(DOC)/manpage.md. It also produces a header file to hard-code the manpage into the executable for platform-independence. 
+# This would typically not be called by the end-user, since it requires that the system has pandoc, xxd, pdflatex, awk, base64 and man installed. It is provided here for convenience of the developer.
+man: manclean  $(SRC)/hammlet-manpage.hpp $(DOC)/hammlet.man $(DOC)/hammlet-manpage.txt $(DOC)/hammlet-manpage.html $(DOC)/hammlet-manpage-a4.pdf $(DOC)/hammlet-manpage-letter.pdf $(LOGO)/logo-round.base64
 
+	
 manclean:
-	rm -f doc/hammlet-manpage.pdf
-	rm -f doc/hammlet-manpage.html
-	rm -f doc/hammlet-manpage.txt
-	rm -f doc/hammlet.man
-	rm -f hammlet-manpage.hpp
+	rm -f $(DOC)/hammlet-manpage-a4.pdf
+	rm -f $(DOC)/hammlet-manpage-letter.pdf
+	rm -f $(DOC)/hammlet-manpage.html
+	rm -f $(DOC)/hammlet-manpage.txt
+	rm -f $(DOC)/hammlet.man
+	rm -f $(SRC)/hammlet-manpage.hpp
+
+$(LOGO)/logo-round.base64:
+	echo -n "data:image/png;base64," > $(LOGO)/logo-round.base64
+	base64 -w 0 $(LOGO)/logo-round.png >> $(LOGO)/logo-round.base64
 	
-doc/hammlet.man:
-	pandoc doc/hammlet-manpage.md -s -t man --variable adjusting=l > doc/hammlet.man
+$(DOC)/hammlet-manpage-a4.pdf:
+	pandoc $(DOC)/hammlet-manpage.md -V lang=en -V papersize=a4 -H $(DOC)/man-preamble.tex -s -t latex  --variable classoption=landscape,twocolumn --variable geometry={margin=1in}  -o $(DOC)/hammlet-manpage-a4.pdf
 
+$(DOC)/hammlet-manpage-letter.pdf:
+	pandoc $(DOC)/hammlet-manpage.md -V lang=en -V papersize=letter -H $(DOC)/man-preamble.tex -s -t latex  --variable classoption=landscape,twocolumn --variable geometry={margin=1in}  -o $(DOC)/hammlet-manpage-letter.pdf
 
-doc/hammlet-manpage.txt: doc/hammlet.man
-	MANWIDTH=80 man  doc/hammlet.man > doc/hammlet-manpage.txt
+$(DOC)/hammlet-manpage.html: $(LOGO)/logo-round.base64
+	pandoc $(DOC)/hammlet-manpage.md -V lang=en -H $(DOC)/pandoc.css  -s -t html | awk 'BEGIN{getline l < "logo/logo-round.base64"}/\"..\/logo\/logo-round.png\"/{gsub("../logo/logo-round.png",l)}1' > $(DOC)/hammlet-manpage.html
+	
+$(DOC)/hammlet.man:
+	pandoc $(DOC)/hammlet-manpage.md -s -t man --variable adjusting=l > $(DOC)/hm
+	cat $(DOC)/hm $(LOGO)/logo-boxdrawing-centered.groff > $(DOC)/hammlet.man
+	rm $(DOC)/hm
+	
 
+$(DOC)/hammlet-manpage.txt: $(DOC)/hammlet.man
+	MANWIDTH=80 man  $(DOC)/hammlet.man > $(DOC)/hammlet-manpage.txt
 	
 # Create .txt version of manpage, as well as a hexdump with C++ declarations, so we can #include the txt version of the manpage into the source at compile time:
-hammlet-manpage.hpp:	doc/hammlet-manpage.txt
-	xxd -i doc/hammlet-manpage.txt > hammlet-manpage.hpp
+$(SRC)/hammlet-manpage.hpp:	$(DOC)/hammlet-manpage.txt
+	xxd -i $(DOC)/hammlet-manpage.txt > $(SRC)/hammlet-manpage.hpp
 	
 

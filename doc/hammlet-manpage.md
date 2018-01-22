@@ -48,11 +48,10 @@ output consists of a CSV file representing a run-length encoded version of the s
 
 -f *FILE* | -input-file *FILE*
 :	Read input data from *FILE* instead of *STDIN*. 
-<!-- TODO If multiple files are provided, they are read in the given order,  as if they were oncatenated into a single file. -->
 
- -o *PREFIX* | -output-prefix *PREFIX*
-:	The prefix for the output file paths. *PREFIX* is extended by a short description and an appropriate file extension to yield an output file name, such as *PREFIX*marginals.csv for the file containing the marginal state distribution; for additional files, see the **-O** option for details. Existing files are silently overwritten. [Default: **hammlet**]
-<!-- TODO make overwrite optional? -->
+ -o *PREFIX* *SUFFIX* | -output-prefix *PREFIX* *SUFFIX*
+:	The prefix and suffix for the output file paths. Output files names are created by adding a short descriptor, e.g. *PREFIX*marginals*SUFFIX* for the file containing the marginal state distribution; for additional files, see the **-O** option for details. If this option is not set, the behavior depends on the -c/-f flags: If -c is set, -o **hammlet** **.csv** is used; if -f *FILENAME.EXT* is provided, -o **FILENAME-** **.EXT**  is used instead.
+
 
 -O *TYPE* ... | -output-data  *TYPE* ...
 :	Specify a list of data types to be output in addition to the marginals. This only applies to recorded iterations as specified using **-i**. It may contain any of the following:
@@ -67,7 +66,7 @@ output consists of a CSV file representing a run-length encoded version of the s
 	:	Lines represent states in ascending order. Columns represent data dimensions. Entries represent the index of emission distributions for each state and data dimension.
 	
 	G | segments
-	:	Output the number of segments in each iteration, as well as the number of values used to store the compressed marginals (for diagntic purposes).
+	:	Output the number of segments in each iteration, as well as the number of values used to store the compressed marginals (for diagnostic purposes).
 	
 	P | parameters
 	:	Output the emission parameters for each state in increasing order of state number, separated by tabs.
@@ -99,9 +98,8 @@ output consists of a CSV file representing a run-length encoded version of the s
 
 
 -e *DIST* *PARAM* | -emissions *DIST* *PARAM*
-:	Set the emissions to be variates of a given *DIST*ribution, and let their parameters be sampled from priors using the given hyper*PARAM*eters. The behavior of this option depends on the number of tokens: Let K be the number of hyperparameters per prior, and D the number of emission distributions (see **-s** option). If *PARAM* consists of K tokens, all priors are assumed to have those same hyperparameters. If there are N*K tokens, each prior gets its specific set of hyperparameters. In all other cases, an exception is thrown.
-Arguments may take the following forms [Default: **normal**. This means that **-a** has to be provided if **-p** is not.]:
-	
+:	Set the emissions to be variates of a given *DIST*ribution, and let their parameters be sampled from priors using the given hyper*PARAM*eters. The behavior of this option depends on the number of tokens: Let K be the number of hyperparameters per prior, and D the number of emission distributions (see **-s** option). If *PARAM* consists of K tokens, all priors are assumed to have those same hyperparameters. If there are N*K tokens, each prior gets its specific set of hyperparameters. In all other cases, an exception is thrown. Arguments may take the following forms [Default: **normal**. This means that **-a** has to be provided if **-p** is not.]:
+
 	**normal** [*PARAMs*]
 	:	For Normal emissions, *PARAM* is a collection of 4-tuples *ALPHA* *BETA* *MU* *NU*, representing parameters to the Normal-Inverse Gamma distribution, sorted by state. If **-a** is set,  *PARAM* is *VAR* *P* instead, where *P* is the probability to sample emission variances less or equal than *VAR*; if these parameters are not provided, they default to **0.2 0.9**.
 	
@@ -140,24 +138,32 @@ Arguments may take the following forms [Default: **normal**. This means that **-
 :	An unsigned integer value to be used to seed the random number generator. If **-R** is not set, a seed is generated from the current epoch time. A seed should be set manually using **-R** whenever reproducibility is required.
 
 -i *SCHEME* ... | -iterations *SCHEME* ...
-:	A list of sampling *SCHEME*s, each of which consists of three tokens, *TYPE* *ITER* *THIN*, except for P, which only has *TYPE*:
+:	A list of sampling *SCHEME*s, each of which consists of either a single token *FLAG*, or three tokens, *TYPE* *ITER* *THIN*.The following *FLAG*s can be used:
 
+	P
+	:	Sample from priors. Since the very first action in a Gibbs sampler is a sampling from the prior, an additional **P** is always silently prepended to **-i**.
+	
+	S
+	:	Set compression to *static*, the block structure is determined by the current state of emission parameters and remains unchanged until **D** is provided.
+	
+	D
+	:	Set compression to *dynamic*, the block structure changes at every iteration based on ht current state of emission parameters and remains unchanged unto **D** is provided.
+	
+	The following triples can be used:
+	
 	1. The *TYPE* of sampling method to be used is one of the following:
-		P
-		: Sample from priors. If the first token provided to -i is not P, an initial sampling of priors is still performed.
-		
-		F
-		: *Forward-Backward Gibbs sampling* uses a dynamic programming trellis to quickly sample state sequences unaffected by auto-correlation due to adjacent blocks. FBG is considered the state-of-the-art for Gibbs sampling in HMM. Running times depends quadratically on the number of states.
-		
-		S
-		: *Static Forward-Backward Gibbs sampling* uses the blocks based on the last sampling of parameters and keeps this structure fixed. This is useful in keeping the size of the trellis in check.
-		
+
 		M
-		: *Mixture sampling* treats compression as a way to impose equality relations on otherwise exchangeable data points. It completely ignores transition probabilities passed to the model, and instead assumes transitions to be implied in the block structure alone. This is much faster than the other methods, as it depends linearly on the number of states, but is not truly an HMM. High-variance components are prone to oversegmentation, and spurious differences in sampled values can lead to segments which come from the same true state being assigned to different states. However, if the variance is expected to be similar over all states, this variant can yield reasonably good results very fast.
+		:	*Mixture sampling* treats compression as a way to impose equality relations on otherwise exchangeable data points. It completely ignores transition probabilities passed to the model, and instead assumes transitions to be implied in the block structure alone. This is much faster than the other methods, as it depends linearly on the number of states, but is not truly an HMM. High-variance components are prone to oversegmentation, and spurious differences in sampled values can lead to segments which come from the same true state being assigned to different states. However, if the variance is expected to be similar over all states, this variant can yield reasonably good results very fast.
+	
+		F
+		:	*Forward-Backward Gibbs sampling* uses a dynamic programming trellis to quickly sample state sequences unaffected by auto-correlation due to adjacent blocks. FBG is considered the state-of-the-art for Gibbs sampling in HMM. Running times depends quadratically on the number of states.
+	
 	2. The number of sampling *ITER*ations.
+	
 	3. The type of *THIN*ning to be used to record sampled state sequences (0=record none, 1=record all, 2=record every second sample, etc.). 
 
-	If the total number of tokens provided to **-i** is not a multiple of 3, an exception is thrown.  [Default: **M 100 0 F 250 10**, i.e.&nbsp;an unrecorded burn-in of 100 mixture iterations, followed by 250 FBG iterations with thinning factor 10, resulting in 25 recorded state sequences.]
+	 [Default: **M 500 0 S P F 200 0 F 300 3**. Under this scheme, 100 unrecorded mixture iterations are performed to converge to a block structure, which is then fixed. The emission parameters are resampled from the prior so as to remove the influence of the mixture observations, and  200 FBG iterations for burn-in are performed, followed by 300 FBG iterations, every third of which is recorded, resulting in 100 recorded iterations.]
 
 
 ## COMPRESSION
@@ -226,3 +232,10 @@ Current repository: <https://github.com/wiedenhoeft/HaMMLET>
 Stable link: <https://schlieplab.org/Software/HaMMLET/>
 
 Documentation in different formats (pdf, html, txt, man) can be found in the doc/ subfolder of HaMMLET's installation directory.
+
+
+<br/>
+<p align="center">
+<img src="../logo/logo-round.png" width="200px"  height="200px" />
+</p>
+<br/>

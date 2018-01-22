@@ -17,7 +17,7 @@
   
   body {
     color: #444;
-    font-family:  Palatino, 'Palatino Linotype', Georgia, Times, 'Times New Roman', serif;
+    font-family:  Palatino, 'Palatino Linotype', Georgia, 'Noto Serif', Times, 'Times New Roman', serif;
     font-size: 12pt;
     line-height: 1.7;
     padding: 1em;
@@ -348,11 +348,8 @@
 <h1 id="name">NAME</h1>
 <p><strong>HaMMLET</strong> - Fast Bayesian Inference for Hidden Markov Models using Dynamic Haar Wavelet Compression.</p>
 <!-- # SYNOPSIS -->
-
 <!-- **hammlet** [**-v**] [**-f** *FILENAME*] [**-o** *PREFIX*] [**-R** *SEED*] [**-i** *SCHEME* ...] -->
-
 <!-- **hammlet** **-h** -->
-
 <h1 id="description">DESCRIPTION</h1>
 <p>HaMMLET is a fast Forward-Backward Gibbs (FBG) sampler for Bayesian HMM. It also implements alternative sampling schemes (currently supported: Mixture Model sampling). Given numerical input data and prior parameters, it outputs a full distribution of latent HMM states for each position, integrating over the entire parameter space. In modern applications, such as the detection of copy-number variants (CNV) using whole-genome sequencing data, the input sizes are on the order of millions to billions of data points. To avoid prohibitively long running times and slow convergence, HaMMLET uses the Haar wavelet transform to dynamically compress the data into blocks of sufficient statistics, based on the lowest noise estimate in each iteration of the Gibbs sampler.</p>
 <p>When using HaMMLET, please cite the following paper:</p>
@@ -365,13 +362,13 @@
 <h1 id="options">OPTIONS</h1>
 <dl>
 <dt>-h | -help</dt>
-<dd><p>Display a friendly help message.</p>
+<dd>Display a friendly help message.
 </dd>
 <dt>-v | -verbose</dt>
-<dd><p>Print information to <em>STDOUT</em> during run-time.</p>
+<dd>Print information to <em>STDOUT</em> during run-time.
 </dd>
 <dt>-g | -arguments</dt>
-<dd><p>Print arguments. For each flag, print an asterisk if it was set by the user, as well as the parameters being used. If the flag was not set, these are the default parameters.</p>
+<dd>Print arguments. For each flag, print an asterisk if it was set by the user, as well as the parameters being used. If the flag was not set, these are the default parameters.
 </dd>
 </dl>
 <h2 id="input-and-output">INPUT AND OUTPUT</h2>
@@ -381,43 +378,34 @@
 <dt>-f <em>FILE</em> | -input-file <em>FILE</em></dt>
 <dd>Read input data from <em>FILE</em> instead of <em>STDIN</em>.
 </dd>
-</dl>
-<!-- TODO If multiple files are provided, they are read in the given order,  as if they were oncatenated into a single file. -->
-
-<dl>
-<dt>-o <em>PREFIX</em> | -output-prefix <em>PREFIX</em></dt>
-<dd>The prefix for the output file paths. <em>PREFIX</em> is extended by a short description and an appropriate file extension to yield an output file name, such as <em>PREFIX</em>marginals.csv for the file containing the marginal state distribution; for additional files, see the <strong>-O</strong> option for details. Existing files are silently overwritten. [Default: <strong>hammlet</strong>]
+<dt>-o <em>PREFIX</em> <em>SUFFIX</em> | -output-prefix <em>PREFIX</em> <em>SUFFIX</em></dt>
+<dd>The prefix and suffix for the output file paths. Output files names are created by adding a short descriptor, e.g. <em>PREFIX</em>marginals<em>SUFFIX</em> for the file containing the marginal state distribution; for additional files, see the <strong>-O</strong> option for details. If this option is not set, the behavior depends on the -c/-f flags: If -c is set, -o <strong>hammlet</strong> <strong>.csv</strong> is used; if -f <em>FILENAME.EXT</em> is provided, -o <strong>FILENAME-</strong> <strong>.EXT</strong> is used instead.
 </dd>
-</dl>
-<!-- TODO make overwrite optional? -->
-
-<dl>
 <dt>-O <em>TYPE</em> ... | -output-data <em>TYPE</em> ...</dt>
 <dd><p>Specify a list of data types to be output in addition to the marginals. This only applies to recorded iterations as specified using <strong>-i</strong>. It may contain any of the following:</p>
 <dl>
 <dt>B | blocks</dt>
-<dd><p>Output the block structure (sizes of all blocks) created by dynamic compression, separated by whitespace.</p>
+<dd>Output the block structure (sizes of all blocks) created by dynamic compression, separated by whitespace.
 </dd>
 <dt>C | compression</dt>
-<dd><p>Output the compression ratio for each iteration.</p>
+<dd>Output the compression ratio for each iteration.
 </dd>
 <dt>D | mapping</dt>
-<dd><p>Lines represent states in ascending order. Columns represent data dimensions. Entries represent the index of emission distributions for each state and data dimension.</p>
+<dd>Lines represent states in ascending order. Columns represent data dimensions. Entries represent the index of emission distributions for each state and data dimension.
 </dd>
 <dt>G | segments</dt>
-<dd><p>Output the number of segments in each iteration, as well as the number of values used to store the compressed marginals (for diagntic purposes).</p>
+<dd>Output the number of segments in each iteration, as well as the number of values used to store the compressed marginals (for diagnostic purposes).
 </dd>
 <dt>P | parameters</dt>
-<dd><p>Output the emission parameters for each state in increasing order of state number, separated by tabs.</p>
+<dd>Output the emission parameters for each state in increasing order of state number, separated by tabs.
 </dd>
 <dt>S | sequences</dt>
-<dd><p>Output each state sequence individually, one per line, separated by whitespace, using run-length encoding of the form <em>LENGTH</em>:<em>STATE</em>.</p>
+<dd>Output each state sequence individually, one per line, separated by whitespace, using run-length encoding of the form <em>LENGTH</em>:<em>STATE</em>.
 </dd>
 </dl>
 </dd>
 </dl>
 <!--    The output for each *TYPE* is written to *PREFIX*_*TYPE*.csv (see **-o**), using the long version of *TYPE*.  If **-O** is specified with an empty list, an exception is thrown. -->
-       
 <dl>
 <dt>-w | -overwrite</dt>
 <dd>Overwrite existing output files. If <strong>-w</strong> is not provided and an output file already exists, an exception is thrown.
@@ -429,7 +417,7 @@
 <dd><p>Definition of hidden states. <em>PARAM</em> may take the following forms [Default: <strong>3</strong>]:</p>
 <dl>
 <dt><em>NRSTATES</em></dt>
-<dd><p>The typical, simple case of an HMM: Given a single unsigned integer <em>NRSTATES</em>, the data is assumed to be one-dimensional and generated from this many hidden states.</p>
+<dd>The typical, simple case of an HMM: Given a single unsigned integer <em>NRSTATES</em>, the data is assumed to be one-dimensional and generated from this many hidden states.
 </dd>
 <dt><em>MAPPING</em> <em>NRPARAM</em> [<em>NRDIM</em>]</dt>
 <dd><p>State definitions in the form of a <em>MAPPING</em>. The data has <em>NRDIM</em> dimensions, and there are <em>NRPARAM</em> different emission distributions. If <em>NRDIM</em> is not provided, it defaults to <strong>1</strong>. A state is defined as a vector S of size <em>NRDIM</em>, where S[i] denotes that the i-th dimension of an emission sampled from this state was generated from the S[i]-th emission distribution. For instance, if a 3-dimensional data point is assigned to a state with mapping S=[1 1 2], its first two dimensions are assumed to be generated by emission distribution 1, and its third dimension by emission distribution 2. The following <em>MAPPING</em> schemes are supported:</p>
@@ -443,67 +431,72 @@
 </dl>
 </dd>
 <dt>-e <em>DIST</em> <em>PARAM</em> | -emissions <em>DIST</em> <em>PARAM</em></dt>
-<dd>Set the emissions to be variates of a given <em>DIST</em>ribution, and let their parameters be sampled from priors using the given hyper<em>PARAM</em>eters. The behavior of this option depends on the number of tokens: Let K be the number of hyperparameters per prior, and D the number of emission distributions (see <strong>-s</strong> option). If <em>PARAM</em> consists of K tokens, all priors are assumed to have those same hyperparameters. If there are N*K tokens, each prior gets its specific set of hyperparameters. In all other cases, an exception is thrown.
+<dd><p>Set the emissions to be variates of a given <em>DIST</em>ribution, and let their parameters be sampled from priors using the given hyper<em>PARAM</em>eters. The behavior of this option depends on the number of tokens: Let K be the number of hyperparameters per prior, and D the number of emission distributions (see <strong>-s</strong> option). If <em>PARAM</em> consists of K tokens, all priors are assumed to have those same hyperparameters. If there are N*K tokens, each prior gets its specific set of hyperparameters. In all other cases, an exception is thrown. Arguments may take the following forms [Default: <strong>normal</strong>. This means that <strong>-a</strong> has to be provided if <strong>-p</strong> is not.]:</p>
+<dl>
+<dt><strong>normal</strong> [<em>PARAMs</em>]</dt>
+<dd>For Normal emissions, <em>PARAM</em> is a collection of 4-tuples <em>ALPHA</em> <em>BETA</em> <em>MU</em> <em>NU</em>, representing parameters to the Normal-Inverse Gamma distribution, sorted by state. If <strong>-a</strong> is set, <em>PARAM</em> is <em>VAR</em> <em>P</em> instead, where <em>P</em> is the probability to sample emission variances less or equal than <em>VAR</em>; if these parameters are not provided, they default to <strong>0.2 0.9</strong>.
 </dd>
 </dl>
-<p>Arguments may take the following forms [Default: <strong>normal</strong>. This means that <strong>-a</strong> has to be provided if <strong>-p</strong> is not.]:</p>
-<pre><code>**normal** [*PARAMs*]
-:   For Normal emissions, *PARAM* is a collection of 4-tuples *ALPHA* *BETA* *MU* *NU*, representing parameters to the Normal-Inverse Gamma distribution, sorted by state. If **-a** is set,  *PARAM* is *VAR* *P* instead, where *P* is the probability to sample emission variances less or equal than *VAR*; if these parameters are not provided, they default to **0.2 0.9**.
-
-*NOTE*: No other emission type than Normal is currently supported.
-
-If neither **-a** nor *PARAM* is provided, an exception is thrown.</code></pre>
-<dl>
+<p><em>NOTE</em>: No other emission type than Normal is currently supported.</p>
+<p>If neither <strong>-a</strong> nor <em>PARAM</em> is provided, an exception is thrown.</p>
+</dd>
 <dt>-a | -auto-priors</dt>
-<dd><p>Use automatic hyperparameters for emission priors, based on the wavelet transform of the data. This changes the meaning of parameters passed to <strong>-p</strong>.</p>
+<dd>Use automatic hyperparameters for emission priors, based on the wavelet transform of the data. This changes the meaning of parameters passed to <strong>-p</strong>.
 </dd>
 <dt>-t <em>VALUES</em> | -transitions <em>VALUES</em></dt>
 <dd><p>Parameters for transition probabilities. These are the parameters alpha for a Dirichlet distribution. <em>VALUES</em> can take the following forms:</p>
 <dl>
 <dt><em>ALPHA</em></dt>
-<dd><p>A single number means that all alpha-parameters are set to the same value.</p>
+<dd>A single number means that all alpha-parameters are set to the same value.
 </dd>
 <dt><em>SELF</em> <em>TRANS</em></dt>
-<dd><p>All alphas corresponding to self-transitions are set to <em>SELF</em>, the others to <em>TRANS</em>.</p>
+<dd>All alphas corresponding to self-transitions are set to <em>SELF</em>, the others to <em>TRANS</em>.
 </dd>
 </dl>
 </dd>
 </dl>
 <!--    TODO accept full matrix, maybe from file? -->
-
 <dl>
 <dt>-S | -no-self-transitions</dt>
-<dd>Do not use self-transition probabilities within blocks (this has no effect for mixture sampling).
+<dd>Do not use self-transition probabilities within blocks (this has no effect for mixture sampling). <!-- TODO should this go to the COMPRESSION section? -->
 </dd>
-</dl>
-<!-- TODO should this go to the COMPRESSION section? -->
-
-<dl>
 <dt>-I <em>ALPHA</em> | -initial <em>ALPHA</em></dt>
-<dd>Sets the alpha parameter of the Dirichlet distribution used as a prior for the initial state distribution.
+<dd>Sets the alpha parameter of the Dirichlet distribution used as a prior for the initial state distribution. <!-- If one parameter is passed, all alphas are set to that value. If the number of parameters matches the number of states, their alphas are set individually. Otherwise, an exception is thrown. --> <!-- TODO define entire vector manually -->
 </dd>
 </dl>
-<!-- If one parameter is passed, all alphas are set to that value. If the number of parameters matches the number of states, their alphas are set individually. Otherwise, an exception is thrown. -->
-<!-- TODO define entire vector manually -->
-
-
-
 <h2 id="sampling-scheme">SAMPLING SCHEME</h2>
 <dl>
 <dt>-R | -random-seed</dt>
-<dd><p>An unsigned integer value to be used to seed the random number generator. If <strong>-R</strong> is not set, a seed is generated from the current epoch time. A seed should be set manually using <strong>-R</strong> whenever reproducibility is required.</p>
+<dd>An unsigned integer value to be used to seed the random number generator. If <strong>-R</strong> is not set, a seed is generated from the current epoch time. A seed should be set manually using <strong>-R</strong> whenever reproducibility is required.
 </dd>
 <dt>-i <em>SCHEME</em> ... | -iterations <em>SCHEME</em> ...</dt>
-<dd><p>A list of sampling <em>SCHEME</em>s, each of which consists of three tokens, <em>TYPE</em> <em>ITER</em> <em>THIN</em>, except for P, which only has <em>TYPE</em>:</p>
+<dd><p>A list of sampling <em>SCHEME</em>s, each of which consists of either a single token <em>FLAG</em>, or three tokens, <em>TYPE</em> <em>ITER</em> <em>THIN</em>.The following <em>FLAG</em>s can be used:</p>
+<dl>
+<dt>P</dt>
+<dd>Sample from priors. Since the very first action in a Gibbs sampler is a sampling from the prior, an additional <strong>P</strong> is always silently prepended to <strong>-i</strong>.
+</dd>
+<dt>S</dt>
+<dd>Set compression to <em>static</em>, the block structure is determined by the current state of emission parameters and remains unchanged until <strong>D</strong> is provided.
+</dd>
+<dt>D</dt>
+<dd>Set compression to <em>dynamic</em>, the block structure changes at every iteration based on ht current state of emission parameters and remains unchanged unto <strong>D</strong> is provided.
+</dd>
+</dl>
+<p>The following triples can be used:</p>
 <ol style="list-style-type: decimal">
-<li><p>The <em>TYPE</em> of sampling method to be used is one of the following: P : Sample from priors. If the first token provided to -i is not P, an initial sampling of priors is still performed.</p>
-<p>F : <em>Forward-Backward Gibbs sampling</em> uses a dynamic programming trellis to quickly sample state sequences unaffected by auto-correlation due to adjacent blocks. FBG is considered the state-of-the-art for Gibbs sampling in HMM. Running times depends quadratically on the number of states.</p>
-<p>S : <em>Static Forward-Backward Gibbs sampling</em> uses the blocks based on the last sampling of parameters and keeps this structure fixed. This is useful in keeping the size of the trellis in check.</p>
-M : <em>Mixture sampling</em> treats compression as a way to impose equality relations on otherwise exchangeable data points. It completely ignores transition probabilities passed to the model, and instead assumes transitions to be implied in the block structure alone. This is much faster than the other methods, as it depends linearly on the number of states, but is not truly an HMM. High-variance components are prone to oversegmentation, and spurious differences in sampled values can lead to segments which come from the same true state being assigned to different states. However, if the variance is expected to be similar over all states, this variant can yield reasonably good results very fast.</li>
-<li>The number of sampling <em>ITER</em>ations.</li>
+<li><p>The <em>TYPE</em> of sampling method to be used is one of the following:</p>
+<dl>
+<dt>M</dt>
+<dd><em>Mixture sampling</em> treats compression as a way to impose equality relations on otherwise exchangeable data points. It completely ignores transition probabilities passed to the model, and instead assumes transitions to be implied in the block structure alone. This is much faster than the other methods, as it depends linearly on the number of states, but is not truly an HMM. High-variance components are prone to oversegmentation, and spurious differences in sampled values can lead to segments which come from the same true state being assigned to different states. However, if the variance is expected to be similar over all states, this variant can yield reasonably good results very fast.
+</dd>
+<dt>F</dt>
+<dd><em>Forward-Backward Gibbs sampling</em> uses a dynamic programming trellis to quickly sample state sequences unaffected by auto-correlation due to adjacent blocks. FBG is considered the state-of-the-art for Gibbs sampling in HMM. Running times depends quadratically on the number of states.
+</dd>
+</dl></li>
+<li><p>The number of sampling <em>ITER</em>ations.</p></li>
 <li><p>The type of <em>THIN</em>ning to be used to record sampled state sequences (0=record none, 1=record all, 2=record every second sample, etc.).</p></li>
 </ol>
-<p>If the total number of tokens provided to <strong>-i</strong> is not a multiple of 3, an exception is thrown. [Default: <strong>M 100 0 F 250 10</strong>, i.e. an unrecorded burn-in of 100 mixture iterations, followed by 250 FBG iterations with thinning factor 10, resulting in 25 recorded state sequences.]</p>
+<p>[Default: <strong>M 500 0 S P F 200 0 F 300 3</strong>. Under this scheme, 100 unrecorded mixture iterations are performed to converge to a block structure, which is then fixed. The emission parameters are resampled from the prior so as to remove the influence of the mixture observations, and 200 FBG iterations for burn-in are performed, followed by 300 FBG iterations, every third of which is recorded, resulting in 100 recorded iterations.]</p>
 </dd>
 </dl>
 <h2 id="compression">COMPRESSION</h2>
@@ -514,7 +507,6 @@ M : <em>Mixture sampling</em> treats compression as a way to impose equality rel
     B | breakpointarray
     : Uses a *breakpoint array*. This data structure yields the exact compression scheme implied by the discontinuities in the wavelet regression. The iteration over blocks has time complexity O(log N), where N is the size of each block. The optional *PARAM*  has no effect for this option.-->
 <!--    TODO make PARAM a filename of precomputed weights, or SLIDING LENGTH -->
-    
 <!--    
     T, wavelettree
     : The *wavelet tree* is a highly optimized implementation of the data structure used in the 2016 version (e.g.&nbsp;**SEE ALSO**). It uses twice as much memory as the breakpoint array. It achieves query complexity O(1) for each block, at the expense of suboptimal compression, as it introduces additional block boundaries not implied by discontinuities in wavelet regression. It also has a more complex constructor. The breakpoint array should be prefered to the wavelet tree. The optional *PARAM* is a tuple *SKIP* *LEVELS* with the following parameters [Default: **0 0**]:
@@ -525,21 +517,17 @@ M : <em>Mixture sampling</em> treats compression as a way to impose equality rel
         *LEVELS*
         :   When creating blocks, the wavelet tree is traversed in DFS order until a suitable block is found. Setting *LEVELS* to a non-zero number means that the tree is traversed by that many more additional levels, which splits the original block and yields more fine-grained compression. The compression factor is decreased by a factor of up to 2^*LEVELS*.
     -->
-    
 <!--    L, legacy
     : This is the same as **T**, but using the original implementation, including out-of-place computation of the wavelet transform. It has much worse memory consumption, and will result in excessive swapping for large data sets. It is provided for legacy and comparative evaluation purposes only, and should never be used in any other setting. -->
-
 <!--    S, slidinghaar
     : Uses a breakpoint array created by sliding a Haar wavelet of support size 2 * *PARAM* along the data. This has a probabilistic interpretation, but does not work well in practice.-->
-
 <!--    TODO chunk size/input compression? -->
-    
 <dl>
 <dt>-b <em>MIN</em> <em>MAX</em> | -block-limits <em>MIN</em> <em>MAX</em></dt>
-<dd><p>The minimum and maximum block size allowed during compression. 0 means no limit. [Default: <strong>0 0</strong>]</p>
+<dd>The minimum and maximum block size allowed during compression. 0 means no limit. [Default: <strong>0 0</strong>]
 </dd>
 <dt>-m <em>FLOAT</em> | -weight-multiplier <em>FLOAT</em></dt>
-<dd><p>Multiply weights by this factor, to avoid overcompression. [Default: <strong>1.0</strong>]</p>
+<dd>Multiply weights by this factor, to avoid overcompression. [Default: <strong>1.0</strong>]
 </dd>
 </dl>
 <h1 id="caveats">CAVEATS</h1>
@@ -549,17 +537,21 @@ M : <em>Mixture sampling</em> treats compression as a way to impose equality rel
 <p>Plotting the results is done using external Python libraries (NumPy, Matplotlib). As these are not optimized for large-scale applications, this can take a long time, often longer than the inference itself.</p>
 <p>HaMMLET does not support the convention of combining single-letter options, such as replacing <strong>-x -y -z</strong> by <strong>-xyz</strong>.</p>
 <h1 id="history">HISTORY</h1>
-<p>The first version of HaMMLET was developed by Eric Brugel and John Wiedenhoeft, and published in 2016 in PLOS CompBio and RECOMB. It used a wavelet tree data structure for dynamic compression. The current version is designed for minimal memory footprint in large-scale applications. Changes include: a breakpoint array data structure for optimal wavelet compression, an in-place algorithm for its construction, run-length-encoded output, and a queue-based implementation to record run-length-encoded state sequences. It is currently developed and maintained by John Wiedenhoeft (<a href="https://orcid.org/0000-0002-6935-1517" title="John&#39;s ORCID site">ORCID: 0000-0002-6935-1517</a>) at <a href="https://github.com/wiedenhoeft/HaMMLET">https://github.com/wiedenhoeft/HaMMLET</a>.</p>
+<p>The first version of HaMMLET was developed by Eric Brugel and John Wiedenhoeft, and published in 2016 in PLOS CompBio and RECOMB. It used a wavelet tree data structure for dynamic compression. The current version is designed for minimal memory footprint in large-scale applications. Changes include: a breakpoint array data structure for optimal wavelet compression, an in-place algorithm for its construction, run-length-encoded output, and a queue-based implementation to record run-length-encoded state sequences. It is currently developed and maintained by John Wiedenhoeft (<a href="https://orcid.org/0000-0002-6935-1517" title="John&#39;s ORCID site">ORCID: 0000-0002-6935-1517</a>) at <a href="https://github.com/wiedenhoeft/HaMMLET" class="uri">https://github.com/wiedenhoeft/HaMMLET</a>.</p>
 <!-- TODO -->
 <!-- # SYSTEM REQUIREMENTS -->
 <!-- Ubuntu, gcc, xxd, man, pandoc, python, matplotlib, pyplot -->
-
 <h1 id="reporting-bugs">REPORTING BUGS</h1>
-<p>GitHub issue tracking system: <a href="https://github.com/wiedenhoeft/HaMMLET/issues">https://github.com/wiedenhoeft/HaMMLET/issues</a></p>
+<p>GitHub issue tracking system: <a href="https://github.com/wiedenhoeft/HaMMLET/issues" class="uri">https://github.com/wiedenhoeft/HaMMLET/issues</a></p>
 <h1 id="see-also">SEE ALSO</h1>
-<p>Current hosting site: <a href="https://wiedenhoeft.github.io/HaMMLET/">https://wiedenhoeft.github.io/HaMMLET/</a></p>
-<p>Current repository: <a href="https://github.com/wiedenhoeft/HaMMLET">https://github.com/wiedenhoeft/HaMMLET</a></p>
-<p>Stable link: <a href="https://schlieplab.org/Software/HaMMLET/">https://schlieplab.org/Software/HaMMLET/</a></p>
+<p>Current hosting site: <a href="https://wiedenhoeft.github.io/HaMMLET/" class="uri">https://wiedenhoeft.github.io/HaMMLET/</a></p>
+<p>Current repository: <a href="https://github.com/wiedenhoeft/HaMMLET" class="uri">https://github.com/wiedenhoeft/HaMMLET</a></p>
+<p>Stable link: <a href="https://schlieplab.org/Software/HaMMLET/" class="uri">https://schlieplab.org/Software/HaMMLET/</a></p>
 <p>Documentation in different formats (pdf, html, txt, man) can be found in the doc/ subfolder of HaMMLET's installation directory.</p>
+<br/>
+<p align="center">
+<img src="data:image/png;base64,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" width="200px"  height="200px" />
+</p>
+<p><br/></p>
 </body>
 </html>

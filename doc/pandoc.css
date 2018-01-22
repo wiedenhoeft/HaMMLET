@@ -9,7 +9,7 @@ html {
 
 body {
   color: #444;
-  font-family:  Palatino, 'Palatino Linotype', Georgia, Times, 'Times New Roman', serif;
+  font-family:  Palatino, 'Palatino Linotype', Georgia, 'Noto Serif', Times, 'Times New Roman', serif;
   font-size: 12pt;
   line-height: 1.7;
   padding: 1em;
