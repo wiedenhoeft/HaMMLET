@@ -1,4 +1,4 @@
-![HaMMLET](https://github.com/wiedenhoeft/HaMMLET/blob/dev/logo/logo-round.png)
+![HaMMLET](https://github.com/wiedenhoeft/HaMMLET/blob/dev/logo/logo-round-250px.png)
 
 HaMMLET - Fast Bayesian HMM segmentation for big data
 =====================================================
