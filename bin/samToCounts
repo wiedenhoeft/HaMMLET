@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+
+# Coverage information is extracted from SAM file. Three files are created:
+#
+# *-count.csv.gz contains the counts for each position in the genome, ordered by refseq name (chromosome name)
+# *-pos.csv.gz contains the corresponding positions within each chromosome.
+# *-size.csv contains 3 columns: the names of the refseqs in alphabetic order, the number of mapped start positions (leftmost), as well as the cumulative sum of the second column (easier for stream processing, and guarantees that the refseq order can always be restored). This corresponds to the lines in the other two files. For instance, "chr1 1000 1000" means that the first 1000 counts and positions come from chromosome 1. Using this file, each line in the pos file can be assigned its chromosome, and hence each count can be mapped uniquely to its genomic position.
+
+# to handle uniq's weird output: remove leading whitespace, merge multiple spaces into one and replace spaces by tabs
+shopt -s expand_aliases
+
+function tabuniq(){
+	uniq -c | sed -e 's/^\s\+\(\w\+\) /\1\t/g'
+}
+
+
+# set I/O
+samfile=$1	# or bamfile
+outprefix=$2
+# set the following bits to be ignored:
+# 4 	read unmapped
+# 256	not primary alignment
+# 512	read fails platform/vendor quality checks
+# 1024	read is PCR or optical duplicate
+# 2048	supplementary alignment
+filterbits=${3:-3844}	
+
+sortdir=${4:-/tmp}	# directory for temporary sort files
+
+
+# Create the read-depth using a system of named pipes, for space efficiency:
+colfifo=${outprefix}-cols.fifo
+sizefifo=${outprefix}-size.fifo
+mapfifo=${outprefix}-map.fifo
+mkfifo ${colfifo}
+mkfifo ${sizefifo}
+mkfifo ${mapfifo}
+
+sizeoutfile=${outprefix}-size.csv
+posoutfile=${outprefix}-pos.csv.gz
+countoutfile=${outprefix}-count.csv.gz
+
+
+# sort by refseq, then leftmost mapping, and count; if a read maps to the exact same position, only count it once, since this will be due to alternative alignment
+( samtools view -F ${filterbits} ${samfile} | cut -f 1,3,4 | sort -T ${sortdir} -k2,2V -k3,3n -k1,1 -u | cut -f 2,3 | tabuniq > ${colfifo} )&
+
+# split into two pipes: sizefifo will proceed to get number of positions per refseq, the other will contain positions and counts
+( cat ${colfifo} | tee ${sizefifo} > ${mapfifo} )&
+
+# write a file containing the refseq and the number of mapped positions 
+( cut -f 2 ${sizefifo} | tabuniq | awk '{total += $1; print $2"\t"$1"\t"total}' > ${sizeoutfile} )&
+
+
+# write one gzip file containing all counts, and one containing all positions, without refseq. Positions are for ordered by refseq as in the file output above. 
+( cat ${mapfifo} | tee >( cut -f 3 | gzip -c > ${posoutfile}) | cut -f 1 | gzip -c > ${countoutfile} )&
+
+wait 
+rm ${colfifo}
+rm ${sizefifo}
+rm ${mapfifo}
+
+
+

@@ -1,0 +1,356 @@
+#!/usr/bin/env python2
+
+import sys
+import os
+from pyhammlet.plotting import *
+from pyhammlet.io import *
+from matplotlib.ticker import MaxNLocator  
+from matplotlib.colors import ListedColormap, BoundaryNorm, LogNorm, Colormap
+import bisect
+
+import argparse
+parser = argparse.ArgumentParser(description='Plot the results from a HaMMLET run.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument(
+	'-f', 
+	'--data-file', 
+	dest='datafile', 
+	metavar="PATH",
+	type=str,
+	default="sample.csv",
+	help='Name of the data file containing the emissions processed by HaMMLET.')
+parser.add_argument(
+	'-i', 
+	'--input-pattern', 
+	dest='inPattern', 
+	metavar=("PREFIX", "SUFFIX"),
+	type=str,
+	default=None,
+	nargs=2,
+	help="A pattern for the paths to files created by HaMMLET. If '-i PREFIX SUFFIX' is provided, the data files are assumed to be PREFIXmarginalsSUFFIX, PREFIXparametersSUFFIX etc., and the output is PREFIX<start>-<end>SUFFIX, where <start> and <end> are the first and last data position in the data file. If -i is not set, the name of the input file FILENAME.EXT will be used to obtain -i FILENAME- .EXT.")
+parser.add_argument(
+	'-o', 
+	'--output-pattern', 
+	dest='outPattern', 
+	metavar=("PREFIX", "SUFFIX"),
+	type=str,
+	default=None,
+	nargs=2,
+	help="A pattern for the output files to be created. If '-o PREFIX SUFFIX' is provided, the output will be PREFIXstart-endSUFFIX. If -o is not provided, the pattern from -i will be used, with the file extension in the suffix replaced by \"png\".")
+parser.add_argument(
+	'-R', 
+	'--range', 
+	dest='range', 
+	metavar=("START", "END"),
+	type=int,
+	default=[0, None],
+	nargs=2,
+	help="The range of positions to be plotted: [START END).")
+parser.add_argument(
+	'-D', 
+	'--dimensionality', 
+	dest='dimensionality', 
+	metavar="INT",
+	type=int,
+	default=1,
+	help="The number of data dimensions (default: 1).")
+parser.add_argument(
+	'-d', 
+	'--dimensions', 
+	dest='dimensions', 
+	metavar=("WIDTH", "HEIGHT"),
+	type=float,
+	nargs=2,
+	default=(10, 10),
+	help='The width and height of the figure, in inches.')
+parser.add_argument(
+	'-r', 
+	'--resolution', 
+	metavar="INT",
+	dest='resolution', 
+	type=int,
+	default=300,
+	help='The resolution, in dpi.')
+parser.add_argument(
+	'-s', 
+	'--subfigures', 
+	metavar="STR",
+	nargs='+',
+	dest='subfigures', 
+	default=["Ym", "Msp"],
+	help='List of strings describing subfigures.')	# TODO details
+parser.add_argument(
+	'-S', 
+	'--split', 
+	type=int,
+	metavar="INT",
+	dest='splitsize', 
+	default=None,
+	help='Create one file for this many data points each (default: everything in one file).')	# TODO details
+parser.add_argument(
+	'-x', 
+	'--xlabel', 
+	dest='xlabel', 
+	metavar="STR",
+	type=str,
+	default="Position",
+	help='Label -f x-axis.')
+parser.add_argument(
+	'-y', 
+	'--ylabels', 
+	metavar="STR",
+	nargs='+',
+	dest='ylabels', 
+	default=["Data", "Marginal probabilities"],
+	help='List of labels for the y-axes.')	# TODO details
+parser.add_argument(
+	'-p', 
+	'--palette', 
+	metavar="PATH",
+	dest='palette', 
+	default=os.path.join(sys.path[0], "pyhammlet/palette.txt"),
+	help='Name of a file for the color palette, with one #RRGGBB entry per line. If there are fewer colors in the palette than there are states, those missing states will be plotted in black.')	# TODO details
+parser.add_argument(
+	'-c', 
+	'--chunksize', 
+	metavar="INT",
+	dest='chunksize', 
+	type=int,
+	default=1,
+	help='Size of input chunks.')
+
+# parse and process command line arguments
+args = parser.parse_args()
+args.width=args.dimensions[0]
+args.height=args.dimensions[1]
+args.nrFigures = len(args.subfigures)
+#assert args.nrFigures <= len(args.ylabels), "Number of y-labels is smaller than the number of figures!"
+if args.nrFigures > len(args.ylabels):
+	print("[WARNING] Number of y-labels is smaller than the number of figures!")
+dataFilename = args.datafile
+
+# get input pattern from filename if it is not provided
+if args.inPattern is None:
+	pref, suff = os.path.splitext(args.datafile)
+	args.inPattern = (pref+"-", suff)
+
+# get output pattern from input pattern if it is not provided
+if args.outPattern is None:
+	args.outPattern = [args.inPattern[0],""]
+	# NOTE we don't use os.path.splitext here, because chances are that the suffix starts with a dot
+	dotsplit = args.inPattern[1].split(".")
+	if len(dotsplit)>1:
+		dotsplit = dotsplit[0:-1]
+	args.outPattern[1] = ".".join(dotsplit)+".png"	
+
+sequencesFilename = "%ssequences%s" % tuple(args.inPattern)
+marginalsFilename = "%smarginals%s" % tuple(args.inPattern)
+blocksFilename = "%sblocks%s" % tuple(args.inPattern)
+
+
+
+data=None
+marginals = None
+blocks=None
+sequences=None
+
+# TODO check which ones we need, using args.subfigures
+T=None
+NR_STATES=None		
+NR_ITERATIONS=None
+NR_DIM = args.dimensionality
+
+# set the above variables and check that they are not conflicting
+# TODO make assignment within function work somehow
+def setT(val):
+	global T
+	if T is not None:
+		assert T == val, "Conflicting data sizes detected: %s, %s!" %(T, val)
+	T=val
+	
+	
+def setNrStates(val):
+	global NR_STATES
+	if NR_STATES is not None:
+		assert NR_STATES == val, "Conflicting number of states detected: %s, %s!" %(NR_STATES, val)
+	NR_STATES=val
+	
+	
+def setNrIterations(val):
+	global NR_ITERATIONS
+	if NR_ITERATIONS is not None:
+		assert NR_ITERATIONS == val, "Conflicting number of iterations detected: %s, %s!" %(NR_ITERATIONS, val)
+	NR_ITERATIONS=val
+	
+	
+computeMaxMargins=False # whether we need to calculate max margins
+# load data and extract values for T, NR_STATES, and NR_ITERATIONS whenever possible
+for string in args.subfigures:
+	assert sum(1 for c in string if c.isupper()) == 1, "Invalid subfigure descriptor \"%s\", must contain exactly one capital letter!" % (string)
+	if 'Y' in string:
+		if data is None:
+			print "Loading data from %s" % dataFilename
+			data = np.loadtxt(dataFilename).reshape((-1,NR_DIM))
+			setT(len(data))
+			args.nrFigures += (NR_DIM-1)
+			if 'm' in string:
+				computeMaxMargins=True
+	elif 'B' in string:
+		if blocks is None:
+			print "Loading block sizes from %s" % blocksFilename
+			blocks = readBlockSizes(blocksFilename)
+			setT(sum([int(x) for x in file(blocksFilename).readline().split()]))
+			setNrIterations(blocks.shape()[1])
+	elif 'M' in string:
+		if marginals is None:
+			print "Loading compressed state marginals from %s" % marginalsFilename
+			marginals = readMarginals(marginalsFilename)
+			setT( marginals.shape()[0])
+			setNrStates(marginals.shape()[1])
+			setNrIterations(marginals[0:1].decompress().sum())
+	elif 'S' in string:
+		if sequences is None:
+			print "Loading compressed state sequences from %s" % sequencesFilename
+			sequences = readCompressedStateSequences(sequencesFilename)
+			setNrIterations(len(sequences))
+			# set number of states manually, since it could potentially increase later when reading marginals
+			if NR_STATES is None:
+				for seq in sequences:
+					NR_STATES = max(NR_STATES, seq.array.max()+1)
+	else:
+		assert False, "Invalid subfigure descriptor: %s" % string
+
+
+assert T is not None, "Could not determine data size, input is incomplete!"
+
+
+
+# Get palette from file.
+# The default palette contains 56 colors. The first twelve colors are ColorBrewer's Paired12, and the others have been created with HalPal so that no two colors are closer to each other than the closest colors in Paired12 (CIEDE2000 >= 13.790368).
+from matplotlib.colors import ListedColormap, BoundaryNorm, LogNorm, Colormap
+# create a ListedColormap with norm from a palette and a number of classes
+palette=[x.strip() for x in file(args.palette).readlines()]
+norm = BoundaryNorm(range(len(palette)+1), len(palette))
+cmap = ListedColormap(palette, name="HaMMLET")
+cmap.set_bad("k")	
+cmap.set_over("k")
+cmap.set_under("k")
+if NR_STATES is not None:
+	if len(palette) < NR_STATES:
+		print "[WARNING] Not enough colors in palette (%d) to represent %d states! Missing colors will be shown in black!" % (len(palette), NR_STATES)
+
+
+
+
+# compute the maximum state margins if necessary
+if computeMaxMargins:
+	if marginals is None and sequences is None:
+		assert False, "Need at least one of marginals and sequences to determine most common states."
+	if marginals is not None:
+		maxMargins = marginals.argmax().decompress()	#TODO get this from sequences if necessary
+	else:	
+		maxMargins = combineRLE(sequences).argmax().decompress()	# TODO implement getting marginals from sequences as an alternative (see above)
+		
+# determine first start and end positions
+if args.splitsize is None:
+	args.splitsize=T
+if args.range[1] is None:	
+	args.range[1]=T
+start=max(0, args.range[0])
+end = min(args.range[1], start+args.splitsize)
+
+# create individual subplots
+while T==-1 or start < end:	
+	fig, axes = plt.subplots(args.nrFigures, figsize=(args.width, args.height), dpi=args.resolution, sharex=True, sharey=False, squeeze=False)
+	figfile="%s%d-%d%s" % (args.outPattern[0], start, end-1, args.outPattern[1])
+	print "Plotting to", figfile
+	f=0
+	for i in xrange(len(args.subfigures)):
+		plt.sca(axes[f,0])
+		string = args.subfigures[i]
+		if string == "B":	# blocks
+			cm = matplotlib.cm.Greys_r
+			cm.set_bad("k")
+			cm.set_under("k")
+			cm.set_over("k")
+			nm = LogNorm(vmin=1)
+			plotBlockSizes(
+				blocks, 
+				start=start, 
+				end=end, 
+				chunkSize=args.chunksize, 
+				ylabel=args.ylabels[i],
+				cmap=cm,
+				norm=nm
+				)
+		if "Y" in string:	# plot data
+			if "m" in string:	# with maximum colors
+				for d in xrange(NR_DIM):
+					plt.sca(axes[f+d,0])
+					plotData(
+						data[:, d], 
+						states=maxMargins, 
+						start=start, 
+						end=end, 
+						cmap=cmap, 
+						norm=norm, 
+						ylabel=args.ylabels[i]) 
+				f += (NR_DIM-1)
+			else:	# with a single color
+				for d in xrange(NR_DIM):
+					plt.sca(axes[f+d,0])
+					plotData(
+						data[:, d], 
+						states=None, 
+						start=start, 
+						end=end, 
+						xlabel=args.xlabel, 
+						ylabel=args.ylabels[i]
+						)
+				f += (NR_DIM-1)
+		elif "M" in string:	# marginals
+			if  "s" in string:	# sort by state
+				pass	# TODO
+			elif "f" in string:	# sort by frequency of occurence
+				pass	# TODO
+			else:
+				assert False, "Unknown plotting type for marginals: %s!" % string
+			normalize = False
+			if "p" in string:	# y-axis as probabilities
+				normalize = True
+			elif "c" in string:	# y-axis as counts
+				normalize = False
+			else:
+				assert False, "Unknown y-scaling for marginals: %s!" % string
+			plotMarginals(
+				marginals, 
+				start=start, 
+				end=end,  
+				cmap=cmap, 
+				norm=norm, 
+				normalize=normalize, 
+				ylabel=args.ylabels[i]
+				)
+		elif "S" in string:	# sequences
+			plotSequences(
+				sequences, 
+				start=start, 
+				end=end, 
+				nrStates=NR_STATES, 
+				cmap=cmap, 
+				norm=norm, 
+				ylabel=args.ylabels[i]
+				)
+		f += 1
+	plt.xlabel(args.xlabel)
+	
+	
+	for ax in axes.reshape(-1):
+		nbins = len(ax.get_xticklabels())
+		ax.yaxis.set_major_locator(MaxNLocator(nbins=nbins, prune='both'))
+		
+	fig.subplots_adjust(hspace=0)
+	plt.savefig( figfile, bbox_inches='tight', dpi=args.resolution)
+	plt.close()
+	start = end
+	end = min(start+args.splitsize, T, args.range[1])
+	

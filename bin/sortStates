@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+# Sort by absolute value of last emission means
+# $1 - parameter file created by HaMMLET
+
+echo "#state	mean"
+tail -n 1 $1  | awk '{ for (i=1;i<=NF;i+=2) print (i-1)/2"\t"$i }'  |  sed -r 's/-([^-]+)/\1\t-/g;' | sort -k 2 -n -r | awk '{print $1"\t"$3$2}' 
