@@ -4,26 +4,29 @@
 
 **HaMMLET** - Fast Bayesian Inference for Hidden Markov Models using Dynamic Haar Wavelet Compression.
 
-<!-- # SYNOPSIS -->
-
-<!-- **hammlet** [**-v**] [**-f** *FILENAME*] [**-o** *PREFIX*] [**-R** *SEED*] [**-i** *SCHEME* ...] -->
-
-<!-- **hammlet** **-h** -->
 
 # DESCRIPTION
 
 HaMMLET is a fast Forward-Backward Gibbs (FBG) sampler for Bayesian HMM. It also implements alternative sampling schemes (currently supported: Mixture Model sampling). Given numerical input data and prior parameters, it outputs a full distribution of latent HMM states for each position, integrating over the entire parameter space. In modern applications, such as the detection of copy-number variants (CNV) using whole-genome sequencing data, the input sizes are on the order of millions to billions of data points. To avoid prohibitively long running times and slow convergence, HaMMLET  uses the Haar wavelet transform to dynamically compress the data into blocks of sufficient statistics, based on the lowest noise estimate in each iteration of the Gibbs sampler. 
 
 
-When using HaMMLET, please cite the following paper: 
+When using HaMMLET, please cite the following paper (a BibTeX file is provided in doc/hammlet.bib): 
 
 > Wiedenhoeft, J., Brugel, E., & Schliep, A. (2016). "Fast Bayesian Inference of Copy Number Variants using Hidden Markov Models with Wavelet Compression". PLOS Computational Biology, 12(5), e1004871. http://doi.org/10.1371/journal.pcbi.1004871. This paper was selected for oral presentation at RECOMB 2016.
 
 
 # USAGE EXAMPLE
-**hammlet &nbsp;-f data.csv &nbsp;-o hmm/result&#95; .csv &nbsp;-O blocks compression &nbsp;-s C 3 2 &nbsp;-i M 100 0 F 200 5 &nbsp;-a &nbsp;-t 10 1**
 
-This reads data from **data.csv**, and writes state marginals to **hmm/result&#95;**marginals**.csv** (notice the space, -o takes two arguments!). It also outputs the sizes of **blocks** for each iteration to hmm/result_**blocks**.csv, and **compression** ratios to hmm/result_**compression**.csv. There are 9 hidden states in total, resulting from all possible **combinations** of **3** emission distributions to generating  **2**-dimensional data. Sampling of state sequences  is done by first running **mixture sampling** for **100** iterations, **none** of which is recorded, followed by **FBG** for **200** iterations, recording every **fifth** of them. This is done using **automatic** emission priors with standard parameters. Prior **transition** weights are  **10** for self-transitions, and **1** for transition between different states.
+**hammlet -f data.csv -s 3 -a -R 0**
+
+Run HaMMLET on input file **data.csv**, using a **3**-state model with **automatic priors** and random-number seed **0** for reproducibility. This outputs the state marginals to **hammlet-marginals.csv**.
+
+**cat data.csv | hammlet -a -R 32 -s 8 -i M 100 0 F 200 5  -t 1 10 -O blocks compression marginals -o result- .csv**
+
+This reads data from STDIN. Using a model with **automatic** emission priors with standard parameters and a random seed of **32** for reproducibility, HaMMLET inferes an **8**-state segmentation. Sampling of state sequences  is done by first running **mixture sampling** for **100** iterations, **none** of which is recorded, followed by **Forward-Backward Gibbs sampling (FBG)** for **200** iterations, recording every **fifth** of them.
+This is done using prior **transition** weights of  **10** for self-transitions, and **1** for transition between different states. The output consists of the sizes of **blocks** for each iteration, the **compression** ratios as well as the state **marginals**. The output files are **result-blocks.csv**, **result.compression.csv**, and **result-marginals.csv**, respectively (notice the space **-o** takes two arguments, prefix and suffix).
+
+
 
 
 
@@ -167,35 +170,6 @@ output consists of a CSV file representing a run-length encoded version of the s
 
 
 ## COMPRESSION
-<!--
--y *TYPE* [*PARAM*] | --data-structure *TYPE* [*PARAM*]
-:	The data structure to be used for dynamic compression, where *TYPE* is one of the following [Default: **B**]:
-
-	B | breakpointarray
-	: Uses a *breakpoint array*. This data structure yields the exact compression scheme implied by the discontinuities in the wavelet regression. The iteration over blocks has time complexity O(log N), where N is the size of each block. The optional *PARAM*  has no effect for this option.-->
-<!-- 	TODO make PARAM a filename of precomputed weights, or SLIDING LENGTH -->
-	
-<!--	
-	T, wavelettree
-	: The *wavelet tree* is a highly optimized implementation of the data structure used in the 2016 version (e.g.&nbsp;**SEE ALSO**). It uses twice as much memory as the breakpoint array. It achieves query complexity O(1) for each block, at the expense of suboptimal compression, as it introduces additional block boundaries not implied by discontinuities in wavelet regression. It also has a more complex constructor. The breakpoint array should be prefered to the wavelet tree. The optional *PARAM* is a tuple *SKIP* *LEVELS* with the following parameters [Default: **0 0**]:
-	
-		*SKIP*
-		:	Determines the number of tree levels to be skipped when recursively calculating the subtree coefficient maxima. Setting this to **1** is a good way to handle salt-and-pepper noise.
-		
-		*LEVELS*
-		:	When creating blocks, the wavelet tree is traversed in DFS order until a suitable block is found. Setting *LEVELS* to a non-zero number means that the tree is traversed by that many more additional levels, which splits the original block and yields more fine-grained compression. The compression factor is decreased by a factor of up to 2^*LEVELS*.
-	-->
-	
-<!--	L, legacy
-	: This is the same as **T**, but using the original implementation, including out-of-place computation of the wavelet transform. It has much worse memory consumption, and will result in excessive swapping for large data sets. It is provided for legacy and comparative evaluation purposes only, and should never be used in any other setting. -->
-
-<!--	S, slidinghaar
-	: Uses a breakpoint array created by sliding a Haar wavelet of support size 2 * *PARAM* along the data. This has a probabilistic interpretation, but does not work well in practice.-->
-
-<!-- 	TODO chunk size/input compression? -->
-	
- -b *MIN* *MAX* | -block-limits *MIN* *MAX*
- :	The minimum and maximum block size allowed during compression. 0 means no limit. [Default: **0 0**]
 
 -m *FLOAT* | -weight-multiplier *FLOAT*
 :	Multiply weights by this factor, to avoid overcompression. [Default: **1.0**]

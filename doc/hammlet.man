@@ -24,7 +24,8 @@ uses the Haar wavelet transform to dynamically compress the data into
 blocks of sufficient statistics, based on the lowest noise estimate in
 each iteration of the Gibbs sampler.
 .PP
-When using HaMMLET, please cite the following paper:
+When using HaMMLET, please cite the following paper (a BibTeX file is
+provided in doc/hammlet.bib):
 .RS
 .PP
 Wiedenhoeft, J., Brugel, E., & Schliep, A.
@@ -37,26 +38,33 @@ This paper was selected for oral presentation at RECOMB 2016.
 .RE
 .SH USAGE EXAMPLE
 .PP
-\f[B]hammlet \ \-f data.csv \ \-o hmm/result_ .csv \ \-O blocks
-compression \ \-s C 3 2 \ \-i M 100 0 F 200 5 \ \-a \ \-t 10 1\f[]
+\f[B]hammlet \-f data.csv \-s 3 \-a \-R 0\f[]
 .PP
-This reads data from \f[B]data.csv\f[], and writes state marginals to
-\f[B]hmm/result_\f[]marginals\f[B]\&.csv\f[] (notice the space, \-o
-takes two arguments!).
-It also outputs the sizes of \f[B]blocks\f[] for each iteration to
-hmm/result_\f[B]blocks\f[].csv, and \f[B]compression\f[] ratios to
-hmm/result_\f[B]compression\f[].csv.
-There are 9 hidden states in total, resulting from all possible
-\f[B]combinations\f[] of \f[B]3\f[] emission distributions to generating
-\f[B]2\f[]\-dimensional data.
+Run HaMMLET on input file \f[B]data.csv\f[], using a \f[B]3\f[]\-state
+model with \f[B]automatic priors\f[] and random\-number seed \f[B]0\f[]
+for reproducibility.
+This outputs the state marginals to \f[B]hammlet\-marginals.csv\f[].
+.PP
+\f[B]cat data.csv | hammlet \-a \-R 32 \-s 8 \-i M 100 0 F 200 5 \-t 1
+10 \-O blocks compression marginals \-o result\- .csv\f[]
+.PP
+This reads data from STDIN.
+Using a model with \f[B]automatic\f[] emission priors with standard
+parameters and a random seed of \f[B]32\f[] for reproducibility, HaMMLET
+inferes an \f[B]8\f[]\-state segmentation.
 Sampling of state sequences is done by first running \f[B]mixture
 sampling\f[] for \f[B]100\f[] iterations, \f[B]none\f[] of which is
-recorded, followed by \f[B]FBG\f[] for \f[B]200\f[] iterations,
-recording every \f[B]fifth\f[] of them.
-This is done using \f[B]automatic\f[] emission priors with standard
-parameters.
-Prior \f[B]transition\f[] weights are \f[B]10\f[] for self\-transitions,
-and \f[B]1\f[] for transition between different states.
+recorded, followed by \f[B]Forward\-Backward Gibbs sampling (FBG)\f[]
+for \f[B]200\f[] iterations, recording every \f[B]fifth\f[] of them.
+This is done using prior \f[B]transition\f[] weights of \f[B]10\f[] for
+self\-transitions, and \f[B]1\f[] for transition between different
+states.
+The output consists of the sizes of \f[B]blocks\f[] for each iteration,
+the \f[B]compression\f[] ratios as well as the state \f[B]marginals\f[].
+The output files are \f[B]result\-blocks.csv\f[],
+\f[B]result.compression.csv\f[], and \f[B]result\-marginals.csv\f[],
+respectively (notice the space \f[B]\-o\f[] takes two arguments, prefix
+and suffix).
 .SH OPTIONS
 .TP
 .B \-h | \-help
@@ -365,13 +373,6 @@ burn\-in are performed, followed by 300 FBG iterations, every third of
 which is recorded, resulting in 100 recorded iterations.]
 .RE
 .SS COMPRESSION
-.TP
-.B \-b \f[I]MIN\f[] \f[I]MAX\f[] | \-block\-limits \f[I]MIN\f[] \f[I]MAX\f[]
-The minimum and maximum block size allowed during compression.
-0 means no limit.
-[Default: \f[B]0 0\f[]]
-.RS
-.RE
 .TP
 .B \-m \f[I]FLOAT\f[] | \-weight\-multiplier \f[I]FLOAT\f[]
 Multiply weights by this factor, to avoid overcompression.

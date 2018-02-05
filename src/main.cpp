@@ -59,7 +59,7 @@ int main( int argc, const char* argv[] ) {
 
 		// COMPRESSION
 // 		args.registerFlags( {"-y", "-data-structure"}, "B" );	// TODO provide alternative data structures
-		args.registerFlags( {"-b", "-block-limits"}, "0 0" );
+// 		args.registerFlags( {"-b", "-block-limits"}, "0 0" );
 		args.registerFlags( {"-m", "-weight-multiplier"}, "1" );	// multiply weights by this factor, to avoid overcompression
 
 		args.parseArgs();
@@ -143,12 +143,12 @@ int main( int argc, const char* argv[] ) {
 
 		// TODO accept full vector as well
 		// default values of 0.5 correspond to Jeffreys prior
-		const real_t selfTrans = args.parse<real_t> ( "-t", 1 );
-		real_t t = selfTrans;
+		const real_t trans = args.parse<real_t> ( "-t", 0 );
+		real_t t = trans;
 		if ( args.nrTokens( "-t" ) > 1 ) {
-			t = args.parse<real_t> ( "-t", 0 );
+			t = args.parse<real_t> ( "-t", 1 );
 		}
-		const real_t trans = t;
+		const real_t selfTrans = t;
 
 
 		Transitions<DirichletVector> A( nrStates, RNG );
@@ -169,10 +169,9 @@ int main( int argc, const char* argv[] ) {
 
 		//// Compression ////
 
-		const size_t chunkSize = max( ( size_t ) 1, args.parse<size_t> ( "-b", 0 ) );
-		const size_t maxBlockSize = args.parse<size_t> ( "-b", 1 );
+// 		const size_t chunkSize = max( ( size_t ) 1, args.parse<size_t> ( "-b", 0 ) );
+// 		const size_t maxBlockSize = args.parse<size_t> ( "-b", 1 );
 
-// 		const string dataStructure =  args.parse<string> ( "-y", 0 );	// TODO make command line option
 		const string dataStructure = "B";
 		if ( dataStructure == "B" ||  dataStructure == "breakpointarray" ) {
 			// TODO any parameters to breakpoint array would go here

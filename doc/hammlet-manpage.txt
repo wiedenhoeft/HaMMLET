@@ -18,7 +18,8 @@ DESCRIPTION
        based on the lowest noise estimate in each iteration of the Gibbs sam‐
        pler.
 
-       When using HaMMLET, please cite the following paper:
+       When using HaMMLET, please cite the following paper (a BibTeX file is
+       provided in doc/hammlet.bib):
 
               Wiedenhoeft, J., Brugel, E., & Schliep, A.  (2016).  "Fast
               Bayesian Inference of Copy Number Variants using Hidden Markov
@@ -27,21 +28,27 @@ DESCRIPTION
               This paper was selected for oral presentation at RECOMB 2016.
 
 USAGE EXAMPLE
-       hammlet  -f data.csv  -o hmm/result_ .csv  -O blocks compression  -s C
-       3 2  -i M 100 0 F 200 5  -a  -t 10 1
+       hammlet -f data.csv -s 3 -a -R 0
 
-       This reads data from data.csv, and writes state marginals to hmm/re‐
-       sult_marginals.csv (notice the space, -o takes two arguments!).  It al‐
-       so outputs the sizes of blocks for each iteration to hmm/re‐
-       sult_blocks.csv, and compression ratios to hmm/result_compression.csv.
-       There are 9 hidden states in total, resulting from all possible combi‐
-       nations of 3 emission distributions to generating 2-dimensional data.
-       Sampling of state sequences is done by first running mixture sampling
-       for 100 iterations, none of which is recorded, followed by FBG for 200
-       iterations, recording every fifth of them.  This is done using automat‐
-       ic emission priors with standard parameters.  Prior transition weights
-       are 10 for self-transitions, and 1 for transition between different
-       states.
+       Run HaMMLET on input file data.csv, using a 3-state model with automat‐
+       ic priors and random-number seed 0 for reproducibility.  This outputs
+       the state marginals to hammlet-marginals.csv.
+
+       cat data.csv | hammlet -a -R 32 -s 8 -i M 100 0 F 200 5 -t 1 10 -O
+       blocks compression marginals -o result- .csv
+
+       This reads data from STDIN.  Using a model with automatic emission pri‐
+       ors with standard parameters and a random seed of 32 for reproducibili‐
+       ty, HaMMLET inferes an 8-state segmentation.  Sampling of state se‐
+       quences is done by first running mixture sampling for 100 iterations,
+       none of which is recorded, followed by Forward-Backward Gibbs sampling
+       (FBG) for 200 iterations, recording every fifth of them.  This is done
+       using prior transition weights of 10 for self-transitions, and 1 for
+       transition between different states.  The output consists of the sizes
+       of blocks for each iteration, the compression ratios as well as the
+       state marginals.  The output files are result-blocks.csv, result.com‐
+       pression.csv, and result-marginals.csv, respectively (notice the space
+       -o takes two arguments, prefix and suffix).
 
 OPTIONS
        -h | -help
@@ -269,10 +276,6 @@ OPTIONS
               is recorded, resulting in 100 recorded iterations.]
 
    COMPRESSION
-       -b MIN MAX | -block-limits MIN MAX
-              The minimum and maximum block size allowed during compression.
-              0 means no limit.  [Default: 0 0]
-
        -m FLOAT | -weight-multiplier FLOAT
               Multiply weights by this factor, to avoid overcompression.  [De‐
               fault: 1.0]
