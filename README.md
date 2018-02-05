@@ -1,6 +1,6 @@
 ![HaMMLET](https://github.com/wiedenhoeft/HaMMLET/blob/dev/logo/logo-inv-noborder.png)
 
-HaMMLET - Fast Bayesian HMM segmentation for big data
+HaMMLET – Fast Bayesian HMM segmentation for big data
 =====================================================
 
 This software implements Forward-Backward Gibbs sampling for Bayesian segmentation in Hidden Markov Models (HMM). It uses dynamic wavelet compression to drastically improve convergence and memory consumption, making inference possible on large-scale data. 
