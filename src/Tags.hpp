@@ -2,7 +2,7 @@
 #define TAGS_HPP
 
 
-enum MappingType {combinations, independent};
+enum MappingType {combinations, shared, manual};
 
 
 // these empty classes are used as tags for template specialization, allowing the compiler to inline and optimize for different use cases
