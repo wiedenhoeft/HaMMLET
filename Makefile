@@ -82,16 +82,16 @@ $(LOGO)/logo-round.base64:
 	base64 -w 0 $(LOGO)/logo-round.png >> $(LOGO)/logo-round.base64
 	
 $(DOC)/hammlet-manpage-a4.pdf:
-	pandoc $(DOC)/hammlet-manpage.md -V lang=en -V papersize=a4 -H $(DOC)/man-preamble.tex -s -t latex  --variable classoption=landscape,twocolumn --variable geometry={margin=1in}  -o $(DOC)/hammlet-manpage-a4.pdf
+	pandoc $(DOC)/hammlet-manpage.md -V lang=english -V papersize=a4 -H $(DOC)/man-preamble.tex -s -t latex  -V classoption=landscape,twocolumn -V geometry={margin=1in}  -o $(DOC)/hammlet-manpage-a4.pdf
 
 $(DOC)/hammlet-manpage-letter.pdf:
-	pandoc $(DOC)/hammlet-manpage.md -V lang=en -V papersize=letter -H $(DOC)/man-preamble.tex -s -t latex  --variable classoption=landscape,twocolumn --variable geometry={margin=1in}  -o $(DOC)/hammlet-manpage-letter.pdf
+	pandoc $(DOC)/hammlet-manpage.md -V lang=english -V papersize=letter -H $(DOC)/man-preamble.tex -s -t latex  -V classoption=landscape,twocolumn -V geometry={margin=1in}  -o $(DOC)/hammlet-manpage-letter.pdf
 
 $(DOC)/hammlet-manpage.html: $(LOGO)/logo-round.base64
-	pandoc $(DOC)/hammlet-manpage.md -V lang=en -H $(DOC)/pandoc.css  -s -t html | awk 'BEGIN{getline l < "logo/logo-round.base64"}/\"..\/logo\/logo-round.png\"/{gsub("../logo/logo-round.png",l)}1' > $(DOC)/hammlet-manpage.html
+	pandoc $(DOC)/hammlet-manpage.md -V lang=english -H $(DOC)/pandoc.css  -s -t html | awk 'BEGIN{getline l < "logo/logo-round.base64"}/\"..\/logo\/logo-round.png\"/{gsub("../logo/logo-round.png",l)}1' > $(DOC)/hammlet-manpage.html
 	
 $(DOC)/hammlet.man:
-	pandoc $(DOC)/hammlet-manpage.md -s -t man --variable adjusting=l > $(DOC)/hm
+	pandoc $(DOC)/hammlet-manpage.md -V adjusting=l -s -t man > $(DOC)/hm
 	cat $(DOC)/hm $(LOGO)/logo-boxdrawing-centered.groff > $(DOC)/hammlet.man
 	rm $(DOC)/hm
 	

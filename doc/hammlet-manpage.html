@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="english" xml:lang="english">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta http-equiv="Content-Style-Type" content="text/css" />
@@ -361,13 +361,13 @@
 <h1 id="options">OPTIONS</h1>
 <dl>
 <dt>-h | -help</dt>
-<dd>Display a friendly help message.
+<dd><p>Display a friendly help message.</p>
 </dd>
 <dt>-v | -verbose</dt>
-<dd>Print information to <em>STDOUT</em> during run-time.
+<dd><p>Print information to <em>STDOUT</em> during run-time.</p>
 </dd>
 <dt>-g | -arguments</dt>
-<dd>Print arguments. For each flag, print an asterisk if it was set by the user, as well as the parameters being used. If the flag was not set, these are the default parameters.
+<dd><p>Print arguments. For each flag, print an asterisk if it was set by the user, as well as the parameters being used. If the flag was not set, these are the default parameters.</p>
 </dd>
 </dl>
 <h2 id="input-and-output">INPUT AND OUTPUT</h2>
@@ -375,39 +375,36 @@
 <p>The output consists of a CSV file representing a run-length encoded version of the state marginals. The first column represents the length of a segment (number of input positions), and subsequent columns represent the recorded counts for each state, in increasing order of state number.</p>
 <dl>
 <dt>-f <em>FILE</em> | -input-file <em>FILE</em></dt>
-<dd>Read input data from <em>FILE</em> instead of <em>STDIN</em>.
+<dd><p>Read input data from <em>FILE</em> instead of <em>STDIN</em>.</p>
 </dd>
 <dt>-o <em>PREFIX</em> <em>SUFFIX</em> | -output-prefix <em>PREFIX</em> <em>SUFFIX</em></dt>
-<dd>The prefix and suffix for the output file paths. Output files names are created by adding a short descriptor, e.g. <em>PREFIX</em>marginals<em>SUFFIX</em> for the file containing the marginal state distribution; for additional files, see the <strong>-O</strong> option for details. If this option is not set, the behavior depends on the -c/-f flags: If -c is set, -o <strong>hammlet</strong> <strong>.csv</strong> is used; if -f <em>FILENAME.EXT</em> is provided, -o <strong>FILENAME-</strong> <strong>.EXT</strong> is used instead.
+<dd><p>The prefix and suffix for the output file paths. Output files names are created by adding a short descriptor, e.g. <em>PREFIX</em>marginals<em>SUFFIX</em> for the file containing the marginal state distribution; for additional files, see the <strong>-O</strong> option for details. If this option is not set, the behavior depends on the -c/-f flags: If -c is set, -o <strong>hammlet</strong> <strong>.csv</strong> is used; if -f <em>FILENAME.EXT</em> is provided, -o <strong>FILENAME-</strong> <strong>.EXT</strong> is used instead.</p>
 </dd>
 <dt>-O <em>TYPE</em> ... | -output-data <em>TYPE</em> ...</dt>
 <dd><p>Specify a list of data types to be output in addition to the marginals. This only applies to recorded iterations as specified using <strong>-i</strong>. It may contain any of the following:</p>
 <dl>
 <dt>B | blocks</dt>
-<dd>Output the block structure (sizes of all blocks) created by dynamic compression, separated by whitespace.
+<dd><p>Output the block structure (sizes of all blocks) created by dynamic compression, separated by whitespace.</p>
 </dd>
 <dt>C | compression</dt>
-<dd>Output the compression ratio for each iteration.
+<dd><p>Output the compression ratio for each iteration.</p>
 </dd>
 <dt>D | mapping</dt>
-<dd>Lines represent states in ascending order. Columns represent data dimensions. Entries represent the index of emission distributions for each state and data dimension.
+<dd><p>Lines represent states in ascending order. Columns represent data dimensions. Entries represent the index of emission distributions for each state and data dimension.</p>
 </dd>
 <dt>G | segments</dt>
-<dd>Output the number of segments in each iteration, as well as the number of values used to store the compressed marginals (for diagnostic purposes).
+<dd><p>Output the number of segments in each iteration, as well as the number of values used to store the compressed marginals (for diagnostic purposes).</p>
 </dd>
 <dt>P | parameters</dt>
-<dd>Output the emission parameters for each state in increasing order of state number, separated by tabs.
+<dd><p>Output the emission parameters for each state in increasing order of state number, separated by tabs.</p>
 </dd>
 <dt>S | sequences</dt>
-<dd>Output each state sequence individually, one per line, separated by whitespace, using run-length encoding of the form <em>LENGTH</em>:<em>STATE</em>.
+<dd><p>Output each state sequence individually, one per line, separated by whitespace, using run-length encoding of the form <em>LENGTH</em>:<em>STATE</em>.</p>
 </dd>
 </dl>
 </dd>
-</dl>
-<!--    The output for each *TYPE* is written to *PREFIX*_*TYPE*.csv (see **-o**), using the long version of *TYPE*.  If **-O** is specified with an empty list, an exception is thrown. -->
-<dl>
 <dt>-w | -overwrite</dt>
-<dd>Overwrite existing output files. If <strong>-w</strong> is not provided and an output file already exists, an exception is thrown.
+<dd><p>Overwrite existing output files. If <strong>-w</strong> is not provided and an output file already exists, an exception is thrown.</p>
 </dd>
 </dl>
 <h2 id="model-specifications">MODEL SPECIFICATIONS</h2>
@@ -416,16 +413,21 @@
 <dd><p>Definition of hidden states. <em>PARAM</em> may take the following forms [Default: <strong>3</strong>]:</p>
 <dl>
 <dt><em>NRSTATES</em></dt>
-<dd>The typical, simple case of an HMM: Given a single unsigned integer <em>NRSTATES</em>, the data is assumed to be one-dimensional and generated from this many hidden states.
+<dd><p>The typical, simple case of an HMM: Given a single unsigned integer <em>NRSTATES</em>, the data is assumed to be one-dimensional and generated from this many hidden states.</p>
 </dd>
-<dt><em>MAPPING</em> <em>NRPARAM</em> [<em>NRDIM</em>]</dt>
-<dd><p>State definitions in the form of a <em>MAPPING</em>. The data has <em>NRDIM</em> dimensions, and there are <em>NRPARAM</em> different emission distributions. If <em>NRDIM</em> is not provided, it defaults to <strong>1</strong>. A state is defined as a vector S of size <em>NRDIM</em>, where S[i] denotes that the i-th dimension of an emission sampled from this state was generated from the S[i]-th emission distribution. For instance, if a 3-dimensional data point is assigned to a state with mapping S=[1 1 2], its first two dimensions are assumed to be generated by emission distribution 1, and its third dimension by emission distribution 2. The following <em>MAPPING</em> schemes are supported:</p>
+<dt><em>MAPPING</em> <em>NRDIST</em> <em>NRDIM</em> <em>LIST</em></dt>
+<dd><p>State definitions in the form of a <em>MAPPING</em>. The data has <em>NRDIM</em> dimensions, and there are <em>NRDIST</em> different emission distributions. If <em>NRDIM</em> is not provided, it defaults to <strong>1</strong>. A state is defined as a vector S of size <em>NRDIM</em>, where S[i] denotes that the i-th dimension of an emission sampled from this state was generated from the S[i]-th emission distribution. For instance, if a 3-dimensional data point is assigned to a state with mapping S=[1 1 2], its first two dimensions are assumed to be generated by emission distribution 1, and its third dimension by emission distribution 2. The following <em>MAPPING</em> schemes are supported:</p>
 <dl>
+<dt>S | shared</dt>
+<dd><p>All values at a given data position are assumed to be generated by the same emission distribution across <em>NRDIM</em> data dimensions. <em>NRDIM</em> defaults to 1, and the number of states equals <em>NRDIST</em>.</p>
+</dd>
 <dt>C | combination</dt>
-<dd>States express all possible combinations of emission distributions, resulting in <em>NRPARAMS</em>^<em>NRDIM</em> different states. For instance, <strong>-s C 2 3</strong> generates 2^3=8 state mappings: (1 1 1), (1 1 2), (1 2 1), (1 2 2), (2 1 1), (2 1 2), (2 2 1), and (2 2 2). Note that <strong>-s C 3 1</strong> is equivalent to <strong>-s 3</strong>.
+<dd><p>States express all possible combinations of emission distributions, resulting in <em>NRPARAMS</em>^<em>NRDIM</em> different states. For instance, <strong>-s C 2 3</strong> generates 2^3=8 state mappings: (1 1 1), (1 1 2), (1 2 1), (1 2 2), (2 1 1), (2 1 2), (2 2 1), and (2 2 2). <em>NRDIM</em> defaults to <strong>1</strong>, so that <strong>-s C 3 1</strong> is equivalent to <strong>-s 3</strong>. <em>LIST</em> is ignored.</p>
+</dd>
+<dt>M | manual</dt>
+<dd><p>Manually specify a <em>LIST</em> of pointers for <em>NRDIST</em> emission distributions and <em>NRDIM</em> data dimensions (<em>NRDIM</em> must be set explicitely, even if it is <strong>1</strong>). The emission distribution for the d-th dimension of the k-th state is the (k<em>NRDIM</em> + d)-th element in <em>LIST</em> (all counts are zero-based), hence the length of <em>LIST</em> must be a multiple of <em>NRDIM</em>, its elements must be at least 0 and smaller than <em>NRDIST</em>, and the number of states is the length of <em>LIST</em> divided by <em>NRDIM</em>.</p>
 </dd>
 </dl>
-<p><em>NOTE</em>: No other mapping schemes are currently supported.</p>
 </dd>
 </dl>
 </dd>
@@ -440,45 +442,42 @@
 <p>If neither <strong>-a</strong> nor <em>PARAM</em> is provided, an exception is thrown.</p>
 </dd>
 <dt>-a | -auto-priors</dt>
-<dd>Use automatic hyperparameters for emission priors, based on the wavelet transform of the data. This changes the meaning of parameters passed to <strong>-p</strong>.
+<dd><p>Use automatic hyperparameters for emission priors, based on the wavelet transform of the data. This changes the meaning of parameters passed to <strong>-p</strong>.</p>
 </dd>
 <dt>-t <em>VALUES</em> | -transitions <em>VALUES</em></dt>
 <dd><p>Parameters for transition probabilities. These are the parameters alpha for a Dirichlet distribution. <em>VALUES</em> can take the following forms:</p>
 <dl>
 <dt><em>ALPHA</em></dt>
-<dd>A single number means that all alpha-parameters are set to the same value.
+<dd><p>A single number means that all alpha-parameters are set to the same value.</p>
 </dd>
 <dt><em>SELF</em> <em>TRANS</em></dt>
-<dd>All alphas corresponding to self-transitions are set to <em>SELF</em>, the others to <em>TRANS</em>.
+<dd><p>All alphas corresponding to self-transitions are set to <em>SELF</em>, the others to <em>TRANS</em>.</p>
 </dd>
 </dl>
 </dd>
-</dl>
-<!--    TODO accept full matrix, maybe from file? -->
-<dl>
 <dt>-S | -no-self-transitions</dt>
-<dd>Do not use self-transition probabilities within blocks (this has no effect for mixture sampling). <!-- TODO should this go to the COMPRESSION section? -->
+<dd><p>Do not use self-transition probabilities within blocks (this has no effect for mixture sampling).</p>
 </dd>
 <dt>-I <em>ALPHA</em> | -initial <em>ALPHA</em></dt>
-<dd>Sets the alpha parameter of the Dirichlet distribution used as a prior for the initial state distribution. <!-- If one parameter is passed, all alphas are set to that value. If the number of parameters matches the number of states, their alphas are set individually. Otherwise, an exception is thrown. --> <!-- TODO define entire vector manually -->
+<dd><p>Sets the alpha parameter of the Dirichlet distribution used as a prior for the initial state distribution.</p>
 </dd>
 </dl>
 <h2 id="sampling-scheme">SAMPLING SCHEME</h2>
 <dl>
 <dt>-R | -random-seed</dt>
-<dd>An unsigned integer value to be used to seed the random number generator. If <strong>-R</strong> is not set, a seed is generated from the current epoch time. A seed should be set manually using <strong>-R</strong> whenever reproducibility is required.
+<dd><p>An unsigned integer value to be used to seed the random number generator. If <strong>-R</strong> is not set, a seed is generated from the current epoch time. A seed should be set manually using <strong>-R</strong> whenever reproducibility is required.</p>
 </dd>
 <dt>-i <em>SCHEME</em> ... | -iterations <em>SCHEME</em> ...</dt>
 <dd><p>A list of sampling <em>SCHEME</em>s, each of which consists of either a single token <em>FLAG</em>, or three tokens, <em>TYPE</em> <em>ITER</em> <em>THIN</em>.The following <em>FLAG</em>s can be used:</p>
 <dl>
 <dt>P</dt>
-<dd>Sample from priors. Since the very first action in a Gibbs sampler is a sampling from the prior, an additional <strong>P</strong> is always silently prepended to <strong>-i</strong>.
+<dd><p>Sample from priors. Since the very first action in a Gibbs sampler is a sampling from the prior, an additional <strong>P</strong> is always silently prepended to <strong>-i</strong>.</p>
 </dd>
 <dt>S</dt>
-<dd>Set compression to <em>static</em>, the block structure is determined by the current state of emission parameters and remains unchanged until <strong>D</strong> is provided.
+<dd><p>Set compression to <em>static</em>, the block structure is determined by the current state of emission parameters and remains unchanged until <strong>D</strong> is provided.</p>
 </dd>
 <dt>D</dt>
-<dd>Set compression to <em>dynamic</em>, the block structure changes at every iteration based on ht current state of emission parameters and remains unchanged unto <strong>D</strong> is provided.
+<dd><p>Set compression to <em>dynamic</em>, the block structure changes at every iteration based on ht current state of emission parameters and remains unchanged unto <strong>D</strong> is provided.</p>
 </dd>
 </dl>
 <p>The following triples can be used:</p>
@@ -486,10 +485,10 @@
 <li><p>The <em>TYPE</em> of sampling method to be used is one of the following:</p>
 <dl>
 <dt>M</dt>
-<dd><em>Mixture sampling</em> treats compression as a way to impose equality relations on otherwise exchangeable data points. It completely ignores transition probabilities passed to the model, and instead assumes transitions to be implied in the block structure alone. This is much faster than the other methods, as it depends linearly on the number of states, but is not truly an HMM. High-variance components are prone to oversegmentation, and spurious differences in sampled values can lead to segments which come from the same true state being assigned to different states. However, if the variance is expected to be similar over all states, this variant can yield reasonably good results very fast.
+<dd><p><em>Mixture sampling</em> treats compression as a way to impose equality relations on otherwise exchangeable data points. It completely ignores transition probabilities passed to the model, and instead assumes transitions to be implied in the block structure alone. This is much faster than the other methods, as it depends linearly on the number of states, but is not truly an HMM. High-variance components are prone to oversegmentation, and spurious differences in sampled values can lead to segments which come from the same true state being assigned to different states. However, if the variance is expected to be similar over all states, this variant can yield reasonably good results very fast.</p>
 </dd>
 <dt>F</dt>
-<dd><em>Forward-Backward Gibbs sampling</em> uses a dynamic programming trellis to quickly sample state sequences unaffected by auto-correlation due to adjacent blocks. FBG is considered the state-of-the-art for Gibbs sampling in HMM. Running times depends quadratically on the number of states.
+<dd><p><em>Forward-Backward Gibbs sampling</em> uses a dynamic programming trellis to quickly sample state sequences unaffected by auto-correlation due to adjacent blocks. FBG is considered the state-of-the-art for Gibbs sampling in HMM. Running times depends quadratically on the number of states.</p>
 </dd>
 </dl></li>
 <li><p>The number of sampling <em>ITER</em>ations.</p></li>
@@ -511,16 +510,13 @@
 <p>Plotting the results is done using external Python libraries (NumPy, Matplotlib). As these are not optimized for large-scale applications, this can take a long time, often longer than the inference itself.</p>
 <p>HaMMLET does not support the convention of combining single-letter options, such as replacing <strong>-x -y -z</strong> by <strong>-xyz</strong>.</p>
 <h1 id="history">HISTORY</h1>
-<p>The first version of HaMMLET was developed by Eric Brugel and John Wiedenhoeft, and published in 2016 in PLOS CompBio and RECOMB. It used a wavelet tree data structure for dynamic compression. The current version is designed for minimal memory footprint in large-scale applications. Changes include: a breakpoint array data structure for optimal wavelet compression, an in-place algorithm for its construction, run-length-encoded output, and a queue-based implementation to record run-length-encoded state sequences. It is currently developed and maintained by John Wiedenhoeft (<a href="https://orcid.org/0000-0002-6935-1517" title="John&#39;s ORCID site">ORCID: 0000-0002-6935-1517</a>) at <a href="https://github.com/wiedenhoeft/HaMMLET" class="uri">https://github.com/wiedenhoeft/HaMMLET</a>.</p>
-<!-- TODO -->
-<!-- # SYSTEM REQUIREMENTS -->
-<!-- Ubuntu, gcc, xxd, man, pandoc, python, matplotlib, pyplot -->
+<p>The first version of HaMMLET was developed by Eric Brugel and John Wiedenhoeft, and published in 2016 in PLOS CompBio and RECOMB. It used a wavelet tree data structure for dynamic compression. The current version is designed for minimal memory footprint in large-scale applications. Changes include: a breakpoint array data structure for optimal wavelet compression, an in-place algorithm for its construction, run-length-encoded output, and a queue-based implementation to record run-length-encoded state sequences. It is currently developed and maintained by John Wiedenhoeft (<a href="https://orcid.org/0000-0002-6935-1517" title="John&#39;s ORCID site">ORCID: 0000-0002-6935-1517</a>) at <a href="https://github.com/wiedenhoeft/HaMMLET">https://github.com/wiedenhoeft/HaMMLET</a>.</p>
 <h1 id="reporting-bugs">REPORTING BUGS</h1>
-<p>GitHub issue tracking system: <a href="https://github.com/wiedenhoeft/HaMMLET/issues" class="uri">https://github.com/wiedenhoeft/HaMMLET/issues</a></p>
+<p>GitHub issue tracking system: <a href="https://github.com/wiedenhoeft/HaMMLET/issues">https://github.com/wiedenhoeft/HaMMLET/issues</a></p>
 <h1 id="see-also">SEE ALSO</h1>
-<p>Current hosting site: <a href="https://wiedenhoeft.github.io/HaMMLET/" class="uri">https://wiedenhoeft.github.io/HaMMLET/</a></p>
-<p>Current repository: <a href="https://github.com/wiedenhoeft/HaMMLET" class="uri">https://github.com/wiedenhoeft/HaMMLET</a></p>
-<p>Stable link: <a href="https://schlieplab.org/Software/HaMMLET/" class="uri">https://schlieplab.org/Software/HaMMLET/</a></p>
+<p>Current hosting site: <a href="https://wiedenhoeft.github.io/HaMMLET/">https://wiedenhoeft.github.io/HaMMLET/</a></p>
+<p>Current repository: <a href="https://github.com/wiedenhoeft/HaMMLET">https://github.com/wiedenhoeft/HaMMLET</a></p>
+<p>Stable link: <a href="https://schlieplab.org/Software/HaMMLET/">https://schlieplab.org/Software/HaMMLET/</a></p>
 <p>Documentation in different formats (pdf, html, txt, man) can be found in the doc/ subfolder of HaMMLET's installation directory.</p>
 <br/>
 <p align="center">

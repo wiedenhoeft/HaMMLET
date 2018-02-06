@@ -87,7 +87,7 @@ void sampleHMM(
 
 	const size_t nrStates = mapping.nrStates();
 	const size_t nrParams = mapping.nrParams();
-	const size_t nrDataDim = mapping.nrDataDims();
+	const size_t nrDataDim = mapping.nrDataDim();
 
 
 	// TODO size checks go here

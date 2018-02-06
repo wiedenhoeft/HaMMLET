@@ -111,6 +111,7 @@ int main( int argc, const char* argv[] ) {
 
 		//// State descriptions, mappings, and numbers of states ////
 
+		Mapping mapping;
 		size_t p;	// number of emission parameters
 		size_t d;	// data dimensions
 		MappingType m;
@@ -118,22 +119,27 @@ int main( int argc, const char* argv[] ) {
 			p = args.parse<size_t> ( "-s", 0 );
 			d = 1;
 			m = combinations;
+			mapping = Mapping( p, d, m );
 		} else {
 			m = args.parse<MappingType> ( "-s", 0 );
-			p = args.parse<size_t> ( "-s", 1 );
-			d = 1;
-			if ( args.nrTokens( "-s" ) >= 3 ) {
-				d = args.parse<size_t> ( "-s", 2 );
+
+			if ( m == manual ) {
+				mapping = Mapping( args.parse<size_t> ( "-s", 1 ),  args.parse<size_t> ( "-s", 2 ),
+				                   args.parseVector<size_t>( "-s", 3 ) );
+			} else {
+
+				p = args.parse<size_t> ( "-s", 1 );
+				d = 1;
+				if ( args.nrTokens( "-s" ) >= 3 ) {
+					d = args.parse<size_t> ( "-s", 2 );
+				}
+				mapping = Mapping( p, d, m );
 			}
 		}
-
 		const MappingType mappingType = m;
-		const size_t nrDataDim = d;
-		const size_t nrParams = p;
-		Mapping mapping(
-		    nrDataDim,
-		    nrParams,
-		    mappingType );
+// 		mapping.print();
+		const size_t nrDataDim = mapping.nrDataDim();
+		const size_t nrParams = mapping.nrParams();
 		const size_t nrStates = mapping.nrStates();
 
 
@@ -299,18 +305,18 @@ int main( int argc, const char* argv[] ) {
 				cout << "Number of data points: " + to_string( T ) << endl << flush;
 			}
 
-			
+
 			// compute an estimate of the noise variance from the finest detail coefficients
-			double stdEstimate=0;
-			size_t nrDetailCoeffs=0;
-			for (size_t i=1; i< inputValues.size(); i+=2){
+			double stdEstimate = 0;
+			size_t nrDetailCoeffs = 0;
+			for ( size_t i = 1; i < inputValues.size(); i += 2 ) {
 				stdEstimate += inputValues[i];
 				nrDetailCoeffs++;
 			}
 			stdEstimate /= nrDetailCoeffs;	// yields mean absolute deviation
 			stdEstimate /= 0.797884560802865355879892119868763736951717262329869315331; // divide by sqrt(2/pi) to get estimate of standard deviation for normal distribution
-			
-			
+
+
 			// inputValues holds the maxlet transform, now transform it to breakpoint weights
 			if ( verbose ) {
 				cout << "Calculating Haar breakpoint weights" << endl << flush;
@@ -346,7 +352,7 @@ int main( int argc, const char* argv[] ) {
 
 				// TODO this version calculates the same autopriors for all dimensions, adapt for flexible mapping
 				thetaParams[0] = autoPrior( thetaParams[0][0], thetaParams[0][1], y, stdEstimate );
-				
+
 				for ( auto & param : thetaParams ) {
 					param = thetaParams[0];
 				}
