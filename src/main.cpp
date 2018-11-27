@@ -460,7 +460,7 @@ int main( int argc, const char* argv[] ) {
 		}
 
 		if ( verbose ) {
-			cout << "Exeunt HaMMLET" << endl << flush;
+			cout << "Exit HaMMLET" << endl << flush;
 		}
 		return 0;
 
